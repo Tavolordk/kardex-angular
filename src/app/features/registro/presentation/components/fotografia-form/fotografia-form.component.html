@@ -1,0 +1,30 @@
+<div class="photo-form" [formGroup]="form()">
+  <div class="photo-top">
+    <div class="upload-zone">
+      <div class="preview">
+        @if (photoUrl()) {
+          <img class="photo" [src]="photoUrl()" alt="Fotografía seleccionada" />
+        } @else {
+          <img class="silhouette" [src]="assets.icons.userRound" alt="" />
+        }
+      </div>
+      <div class="upload-actions">
+        <label class="upload-button"><img [src]="assets.icons.save" alt="" /><span>Subir fotografía</span><input type="file" accept="image/png,image/jpeg" (change)="onFile($event)" /></label>
+        <button type="button" class="delete" (click)="photoRemoved.emit()" [disabled]="!photoUrl()">Eliminar</button>
+        @if (photoName()) { <small class="filename">{{photoName()}}</small> }
+        @if (photoError()) { <small class="file-error">{{photoError()}}</small> }
+        <div class="requirements"><strong>Requisitos tipo pasaporte:</strong><ul><li>Reciente a color, fondo blanco</li><li>Rostro descubierto, de frente</li><li>Sin lentes, gorra ni accesorios</li><li>Formato JPG/PNG, máx 2 MB</li></ul></div>
+      </div>
+    </div>
+    <div class="photo-data">
+      <label class="data-field required"><span>Fecha de toma</span><input type="date" formControlName="fechaToma" /></label>
+      <div class="data-field"><span>Vigencia</span><div class="readonly">3 años desde la fecha de toma</div></div>
+      <div class="data-field"><span>Estado de vigencia</span><div class="valid"><img [src]="assets.icons.statusDot" alt="" />Vigente</div></div>
+      <div class="data-field"><span>Origen de captura</span><div class="readonly">Expediente de ingreso</div></div>
+    </div>
+  </div>
+  <div class="biometric-row">
+    <div class="data-field required"><span>Cuenta con registro biométrico</span><div class="segmented"><button type="button" [class.selected]="form().get('biometrico')?.value==='si'" (click)="form().get('biometrico')?.setValue('si')">Sí</button><button type="button" [class.selected]="form().get('biometrico')?.value==='no'" (click)="form().get('biometrico')?.setValue('no')">No</button></div></div>
+    <label class="data-field required"><span>Identificador de referencia</span><input formControlName="identificadorReferencia" /></label>
+  </div>
+</div>

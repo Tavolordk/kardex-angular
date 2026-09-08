@@ -1,0 +1,38 @@
+<div class="app-shell">
+  <app-institutional-header />
+  <div class="shell-body">
+    <app-sidebar [open]="sidebarOpen()" (toggled)="toggleSidebar()" />
+    <main class="workspace">
+      <app-section-header [title]="facade.activeStep() === 'fotografia' ? 'Registro' : 'Datos personales'" />
+      <div class="page-content">
+        <app-help-panel [sections]="sectionProgress()" [general]="generalProgress()" />
+        <section class="form-zone">
+          <button class="nav-arrow previous" type="button" [disabled]="activeIndex() === 0" (click)="previous()" aria-label="Sección anterior"><img [src]="assets.icons.previous" alt="" /></button>
+          <article class="registration-card">
+            <app-step-navigation [steps]="steps" [active]="facade.activeStep()" [completed]="completed()" (changed)="setStep($event)" />
+            <div class="card-content">
+              <header class="form-heading">
+                <div><div class="title-line"><h3>{{activeMeta().title}}</h3><span>{{activeMeta().requiredCount}} REQ.</span></div><p>{{activeMeta().description}}</p></div>
+                <b>{{activeIndex()+1}} / 4</b>
+              </header>
+              <div class="form-body">
+                @switch(facade.activeStep()) {
+                  @case ('identificacion') { <app-identificacion-form [form]="form" /> }
+                  @case ('origen') { <app-origen-residencia-form [form]="form" /> }
+                  @case ('contacto') { <app-contacto-form [form]="form" /> }
+                  @case ('fotografia') { <app-fotografia-form [form]="form" [photoUrl]="photoUrl()" [photoName]="photoName()" [photoError]="photoError()" (photoSelected)="onPhotoSelected($event)" (photoRemoved)="removePhoto()" /> }
+                }
+              </div>
+            </div>
+            <footer class="card-actions">
+              <button type="button" class="save-button" [disabled]="facade.isSaving()" (click)="saveDraft()"><img [src]="assets.icons.save" alt="" /><span>{{ facade.isSaving() ? 'Guardando...' : 'Guardar borrador' }}</span></button>
+              @if (facade.saveState() === 'saved') { <span class="feedback success">Borrador guardado.</span> }
+              @if (facade.saveState() === 'error') { <span class="feedback error">{{facade.error()}}</span> }
+            </footer>
+          </article>
+          <button class="nav-arrow next" type="button" [disabled]="activeIndex() === steps.length-1" (click)="next()" aria-label="Siguiente sección"><img [src]="assets.icons.next" alt="" /></button>
+        </section>
+      </div>
+    </main>
+  </div>
+</div>

@@ -1,0 +1,32 @@
+{
+  "name": "kardex-policial-sspc",
+  "version": "1.1.0",
+  "scripts": {
+    "ng": "ng",
+    "assets:figma": "node scripts/sync-figma-assets.mjs",
+    "postinstall": "npm run assets:figma",
+    "prestart": "npm run assets:figma",
+    "start": "ng serve",
+    "build": "ng build",
+    "build:with-assets": "npm run assets:figma && ng build",
+    "test": "ng test"
+  },
+  "private": true,
+  "dependencies": {
+    "@angular/common": "^21.0.0",
+    "@angular/compiler": "^21.0.0",
+    "@angular/core": "^21.0.0",
+    "@angular/forms": "^21.0.0",
+    "@angular/platform-browser": "^21.0.0",
+    "@angular/router": "^21.0.0",
+    "rxjs": "~7.8.2",
+    "tslib": "^2.8.1",
+    "zone.js": "~0.15.1"
+  },
+  "devDependencies": {
+    "@angular-devkit/build-angular": "^21.0.0",
+    "@angular/cli": "^21.0.0",
+    "@angular/compiler-cli": "^21.0.0",
+    "typescript": "~5.9.2"
+  }
+}

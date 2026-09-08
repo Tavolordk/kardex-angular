@@ -1,0 +1,10 @@
+:root {
+  --font-heading: "Plus Jakarta Sans", "Segoe UI", Arial, sans-serif;
+  --font-body: Inter, "Segoe UI", Arial, sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { min-height: 100%; margin: 0; }
+body { min-width: 320px; background: #fafafa; color: #1b222b; font-family: var(--font-body); }
+button, input, select { font: inherit; }
+button { -webkit-tap-highlight-color: transparent; }

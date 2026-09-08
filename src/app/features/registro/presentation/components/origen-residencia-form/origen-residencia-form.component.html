@@ -1,0 +1,9 @@
+<div class="form-grid" [formGroup]="form()">
+  <label class="field required"><span>Entidad federativa residencia</span><select formControlName="entidadResidencia"><option value="">Seleccione...</option><option>Guerrero</option><option>Ciudad de México</option><option>Estado de México</option></select></label>
+  <label class="field required"><span>Municipio de residencia</span><select formControlName="municipioResidencia"><option value="">Seleccione...</option><option>Acapulco de Juárez</option><option>Chilpancingo de los Bravo</option><option>Atoyac de Álvarez</option></select></label>
+  <label class="field required"><span>Calle</span><input formControlName="calle" placeholder="Ej. Avenida Reforma" /></label>
+  <label class="field"><span>Número exterior</span><input formControlName="numeroExterior" placeholder="Ej. 120" /></label>
+  <label class="field"><span>Número interior</span><input formControlName="numeroInterior" placeholder="Ej. 4B" /></label>
+  <label class="field"><span>Colonia</span><input formControlName="colonia" placeholder="Ej. Centro" /></label>
+  <label class="field required"><span>Código postal</span><input formControlName="codigoPostal" maxlength="5" inputmode="numeric" placeholder="Ej. 39000" /></label>
+</div>

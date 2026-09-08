@@ -1,0 +1,94 @@
+<div class="app-shell">
+  <header class="topbar">
+    <div class="brand">
+      <div class="seal">◉</div>
+      <div><strong>Seguridad</strong><small>Secretaría de Seguridad y Protección Ciudadana</small></div>
+    </div>
+    <div class="top-title">Kárdex Policial SSPC</div>
+    <div class="user-block"><div class="user-copy"><strong>Administrador Kardex</strong><span>Administrador</span></div><div class="avatar">AK</div><button class="icon-btn" aria-label="Cerrar sesión">↪</button></div>
+  </header>
+
+  <div class="body-layout">
+    <aside class="sidebar" [class.collapsed]="!sidebarOpen()">
+      <div class="sidebar-head"><span>MÓDULOS</span><button class="icon-btn sm" (click)="toggleSidebar()">‹</button></div>
+      <nav>
+        <a><i>▦</i><div><b>Tablero principal</b><span>Resumen general</span></div></a>
+        <a><i>▥</i><div><b>Consolidación RNPSP</b><span>Importación y validación</span></div></a>
+        <a class="active"><i>▣</i><div><b>Registro</b><span>Captura inicial</span></div><em>›</em></a>
+        <a><i>⌕</i><div><b>Consulta</b><span>Búsqueda de personal</span></div></a>
+        <a><i>⚙</i><div><b>Administración</b><span>Usuarios y permisos</span></div></a>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <section class="section-header">
+        <div class="section-title"><div class="section-icon">▣</div><div><h1>{{ activeStep() === 'foto' ? 'Registro' : 'Datos personales' }}</h1><p>Captura inicial de información del personal policial</p></div></div>
+        <div class="badges"><span>Registro inicial</span><span class="required"><i></i>Campos obligatorios</span></div>
+      </section>
+
+      <div class="workspace">
+        <aside class="help-column">
+          <article class="glass-card instructions"><h3><i>▣</i> Instrucciones</h3><ol><li><b>1</b><span>Puede navegar libremente entre secciones; al registrar se validarán los campos obligatorios.</span></li><li><b>2</b><span>Puede guardar su progreso como borrador en cualquier momento.</span></li></ol></article>
+          <article class="glass-card progress"><h3><i>◉</i> Progreso Por Sección</h3><div *ngFor="let s of steps"><div class="progress-label"><span>{{s.key === 'foto' ? 'Fotografía y biométricos' : s.title}}</span><b>{{ activeStep() === s.key ? '25' : (stepIndex() > steps.indexOf(s) ? '100' : '0') }}%</b></div><div class="bar"><span [style.width.%]="activeStep() === s.key ? 25 : (stepIndex() > steps.indexOf(s) ? 100 : 0)"></span></div></div></article>
+          <article class="glass-card general"><div><h3>Progreso General</h3><strong>{{ (stepIndex()+1)*25 }}%</strong></div><div class="bar"><span [style.width.%]="(stepIndex()+1)*25"></span></div><p>{{ stepIndex() === 0 ? 'Comenzando el registro inicial.' : 'Avance guardado en el registro.' }}</p></article>
+          <article class="glass-card tip"><h3><i>♙</i> Recomendación</h3><p>Capture el nombre y los apellidos exactamente como aparecen en los documentos oficiales.</p></article>
+        </aside>
+
+        <section class="form-zone">
+          <button class="round-nav left" (click)="prev()" [disabled]="stepIndex()===0">‹</button>
+          <article class="form-card">
+            <div class="step-tabs">
+              <button *ngFor="let s of steps; let i=index" (click)="setStep(s.key)" [class.current]="activeStep()===s.key" [class.done]="stepIndex()>i"><i>{{s.icon}}</i><div><b>{{s.title}}</b><span>{{ stepIndex()>i ? 'Capturado' : (activeStep()===s.key ? 'En captura' : 'Disponible') }}</span></div></button>
+            </div>
+
+            <div class="form-content" [formGroup]="form">
+              <div class="form-heading"><div><div class="title-row"><h2>{{ currentStep().title }}</h2><span>{{ activeStep()==='basica' ? '9 REQ.' : activeStep()==='origen' ? '4 REQ.' : activeStep()==='contacto' ? '2 REQ.' : '1 REQ.' }}</span></div><p>{{ activeStep()==='foto' ? 'Registrar o consultar fotografía actualizada dentro del módulo Datos Personales.' : 'Información general, contacto y escolaridad inicial del elemento policial.' }}</p></div><em>{{stepIndex()+1}} / 4</em></div>
+
+              <div class="fields-grid" *ngIf="activeStep()==='basica'">
+                <label><span>CURP <i>*</i></span><input formControlName="curp" placeholder="Ej. ABCD000000MDFAAZP0"></label>
+                <label><span>NOMBRE(S) <i>*</i></span><input formControlName="nombres" placeholder="Ej. Juan Carlos"></label>
+                <label><span>PRIMER APELLIDO <i>*</i></span><input formControlName="primerApellido" placeholder="Ej. Pérez"></label>
+                <label><span>SEGUNDO APELLIDO</span><input formControlName="segundoApellido" placeholder="Ej. García"></label>
+                <label><span>FECHA DE NACIMIENTO <i>*</i></span><input type="date" formControlName="fechaNacimiento"></label>
+                <label><span>SEXO <i>*</i></span><select formControlName="sexo"><option value="">Seleccione...</option><option>Masculino</option><option>Femenino</option><option>Otro</option></select></label>
+                <label><span>IDENTIDAD DE GÉNERO</span><select formControlName="identidadGenero"><option value="">Seleccione...</option><option>Hombre</option><option>Mujer</option><option>No binario</option></select></label>
+                <label><span>NACIONALIDAD <i>*</i></span><select formControlName="nacionalidad"><option value="">Seleccione...</option><option>Mexicana</option><option>Otra</option></select></label>
+                <label><span>ENTIDAD FEDERATIVA NACIMIENTO <i>*</i></span><select formControlName="entidadNacimiento"><option value="">Seleccione...</option><option>Guerrero</option><option>Ciudad de México</option></select></label>
+                <label><span>MUNICIPIO DE NACIMIENTO <i>*</i></span><select formControlName="municipioNacimiento"><option value="">Seleccione...</option><option>Atoyac de Álvarez</option></select></label>
+                <label><span>ESTADO CIVIL <i>*</i></span><select formControlName="estadoCivil"><option value="">Seleccione...</option><option>Soltero(a)</option><option>Casado(a)</option></select></label>
+                <label><span>CONDICIÓN DE VULNERABILIDAD</span><select formControlName="vulnerabilidad"><option value="">Seleccione...</option><option>Ninguna</option></select></label>
+                <label><span>NÚMERO DE DEPENDIENTES ECONÓMICOS</span><input formControlName="dependientes" placeholder="Ej. Tres"></label>
+              </div>
+
+              <div class="fields-grid" *ngIf="activeStep()==='origen'">
+                <label><span>ENTIDAD FEDERATIVA RESIDENCIA <i>*</i></span><select formControlName="entidadResidencia"><option value="">Seleccione...</option><option>Guerrero</option></select></label>
+                <label><span>MUNICIPIO DE RESIDENCIA <i>*</i></span><select formControlName="municipioResidencia"><option value="">Seleccione...</option><option>Acapulco de Juárez</option></select></label>
+                <label><span>CALLE <i>*</i></span><input formControlName="calle" placeholder="Ej. Reforma"></label>
+                <label><span>NÚMERO EXTERIOR</span><input formControlName="numeroExterior" placeholder="Ej. 24"></label>
+                <label><span>NÚMERO INTERIOR</span><input formControlName="numeroInterior" placeholder="Ej. 2B"></label>
+                <label><span>COLONIA</span><input formControlName="colonia" placeholder="Ej. Centro"></label>
+                <label><span>CÓDIGO POSTAL <i>*</i></span><input formControlName="codigoPostal" placeholder="Ej. 39000"></label>
+              </div>
+
+              <div class="fields-grid" *ngIf="activeStep()==='contacto'">
+                <label><span>NÚMERO DE TELÉFONO</span><input formControlName="telefono" placeholder="Ej. 744 000 0000"></label>
+                <label><span>CORREO ELECTRÓNICO</span><input type="email" formControlName="correo" placeholder="correo@ejemplo.gob.mx"></label>
+                <label><span>NOMBRE CONTACTO DE EMERGENCIA <i>*</i></span><input formControlName="contactoEmergencia" placeholder="Nombre completo"></label>
+                <label><span>CONTACTO DE EMERGENCIA <i>*</i></span><input formControlName="telefonoEmergencia" placeholder="Teléfono"></label>
+              </div>
+
+              <div class="photo-layout" *ngIf="activeStep()==='foto'">
+                <div class="photo-left"><div class="photo-placeholder"><span>♟</span><small *ngIf="photoName()">{{photoName()}}</small></div><div class="photo-actions"><label class="upload-btn">▣ Seleccionar fotografía<input type="file" accept="image/png,image/jpeg" (change)="onPhoto($event)"></label><button class="delete-btn" type="button" (click)="photoName.set('')">Eliminar</button><div class="requirements"><b>Requisitos tipo pasaporte:</b><p>• Reciente a color, fondo blanco<br>• Rostro descubierto, de frente<br>• Sin lentes, gorra ni accesorios<br>• Formato JPG/PNG, máx 2 MB</p></div></div></div>
+                <div class="photo-right"><label><span>FECHA DE TOMA <i>*</i></span><input type="date" formControlName="fechaToma"></label><div class="info-field"><span>VIGENCIA</span><div>3 años desde la fecha de toma</div></div><div class="info-field"><span>ESTADO DE VIGENCIA</span><div class="status"><i></i>Vigente</div></div><div class="info-field"><span>ORIGEN DE CAPTURA</span><div>Expediente de ingreso</div></div></div>
+                <div class="biometric"><div><span>CUENTA CON REGISTRO BIOMÉTRICO <i>*</i></span><div class="segmented"><label><input type="radio" value="si" formControlName="biometrico">Sí</label><label><input type="radio" value="no" formControlName="biometrico">No</label></div></div><div class="info-field"><span>IDENTIFICADOR DE REFERENCIA <i>*</i></span><div>{{form.controls.identificador.value}}</div></div></div>
+              </div>
+            </div>
+
+            <footer class="form-footer"><button class="draft" (click)="saveDraft()">▣ Guardar borrador</button><span class="saved" *ngIf="saved()">Borrador guardado</span></footer>
+          </article>
+          <button class="round-nav right" (click)="next()" [disabled]="stepIndex()===steps.length-1">›</button>
+        </section>
+      </div>
+    </main>
+  </div>
+</div>

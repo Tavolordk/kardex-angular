@@ -1,0 +1,15 @@
+<aside class="sidebar" [class.sidebar--closed]="!open()">
+  <div class="sidebar-title">
+    <span>MÓDULOS</span>
+    <button type="button" (click)="toggled.emit()" aria-label="Contraer menú"><img [src]="assets.icons.collapse" alt="" /></button>
+  </div>
+  <nav aria-label="Módulos principales">
+    @for (item of items; track item.title) {
+      <button class="menu-item" type="button" [class.active]="item.active">
+        <span class="menu-icon"><img [src]="item.icon" alt="" /></span>
+        <span class="menu-copy"><strong>{{ item.title }}</strong><small>{{ item.description }}</small></span>
+        <span class="arrow">›</span>
+      </button>
+    }
+  </nav>
+</aside>

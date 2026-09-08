@@ -1,0 +1,15 @@
+<div class="form-grid" [formGroup]="form()">
+  <label class="field required"><span>CURP</span><input formControlName="curp" maxlength="18" placeholder="Ej. ABCD000000MDFAAZP0" /></label>
+  <label class="field required"><span>Nombre(s)</span><input formControlName="nombres" placeholder="Ej. Juan Carlos" /></label>
+  <label class="field required"><span>Primer apellido</span><input formControlName="primerApellido" placeholder="Ej. Pérez" /></label>
+  <label class="field"><span>Segundo apellido</span><input formControlName="segundoApellido" placeholder="Ej. García" /></label>
+  <label class="field required"><span>Fecha de nacimiento</span><input type="date" formControlName="fechaNacimiento" /></label>
+  <label class="field required"><span>Sexo</span><select formControlName="sexo"><option value="">Seleccione...</option><option>Femenino</option><option>Masculino</option><option>Otro</option></select></label>
+  <label class="field"><span>Identidad de género</span><select formControlName="identidadGenero"><option value="">Seleccione...</option><option>Mujer</option><option>Hombre</option><option>No binario</option><option>Prefiero no especificar</option></select></label>
+  <label class="field required"><span>Nacionalidad</span><select formControlName="nacionalidad"><option value="">Seleccione...</option><option>Mexicana</option><option>Otra</option></select></label>
+  <label class="field required"><span>Entidad federativa nacimiento</span><select formControlName="entidadNacimiento"><option value="">Seleccione...</option><option>Guerrero</option><option>Ciudad de México</option><option>Estado de México</option><option>Jalisco</option></select></label>
+  <label class="field required"><span>Municipio de nacimiento</span><select formControlName="municipioNacimiento"><option value="">Seleccione...</option><option>Acapulco de Juárez</option><option>Chilpancingo de los Bravo</option><option>Atoyac de Álvarez</option></select></label>
+  <label class="field required"><span>Estado civil</span><select formControlName="estadoCivil"><option value="">Seleccione...</option><option>Soltero(a)</option><option>Casado(a)</option><option>Divorciado(a)</option><option>Viudo(a)</option></select></label>
+  <label class="field"><span>Condición de vulnerabilidad</span><select formControlName="vulnerabilidad"><option value="">Seleccione...</option><option>Ninguna</option><option>Discapacidad</option><option>Otra</option></select></label>
+  <label class="field"><span>Número de dependientes económicos</span><input type="number" min="0" formControlName="dependientes" placeholder="Ej. 3" /></label>
+</div>
