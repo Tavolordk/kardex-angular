@@ -3,8 +3,25 @@
   --font-body: Inter, "Segoe UI", Arial, sans-serif;
   color-scheme: light;
 }
+
 * { box-sizing: border-box; }
 html, body { min-height: 100%; margin: 0; }
-body { min-width: 320px; background: #fafafa; color: #1b222b; font-family: var(--font-body); }
-button, input, select { font: inherit; }
-button { -webkit-tap-highlight-color: transparent; }
+html { overflow-x: hidden; }
+body {
+  min-width: 320px;
+  overflow-x: hidden;
+  background: #fafafa;
+  color: #1b222b;
+  font-family: var(--font-body);
+}
+
+button,
+input,
+select { font: inherit; }
+
+button {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+img { max-width: 100%; }

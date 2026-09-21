@@ -1,29 +1,66 @@
-<aside class="help-panel">
-  <article class="glass-card instructions">
-    <header><span class="card-icon"><img [src]="assets.icons.instructions" alt="" /></span><h3>Instrucciones</h3></header>
-    <ol>
-      <li><span>1</span><p>Puede navegar libremente entre secciones; al registrar se validarán los campos obligatorios.</p></li>
-      <li><span>2</span><p>Puede guardar su progreso como borrador en cualquier momento.</p></li>
-    </ol>
-  </article>
-  <article class="glass-card progress-card">
-    <header><span class="card-icon neutral"><img [src]="assets.icons.progress" alt="" /></span><h3>Progreso por sección</h3></header>
-    <div class="progress-list">
-      @for(section of sections(); track section.key){
-        <div class="progress-row">
-          <div><strong>{{section.label}}</strong><b>{{section.percentage}}%</b></div>
-          <span class="bar"><i [style.width.%]="section.percentage"></i></span>
+<aside class="help-panel" aria-label="Información auxiliar del registro">
+  @if (visible().instructions) {
+    <article class="glass-card instructions">
+      <header>
+        <span class="card-icon"><img [src]="assets.icons.instructions" alt="" /></span>
+        <h3>Instrucciones</h3>
+        <button class="minimize-card" type="button" aria-label="Ocultar instrucciones" title="Ocultar" (click)="panelClosed.emit('instructions')">
+          <span></span>
+        </button>
+      </header>
+      <ol>
+        <li><span>1</span><p>Puede navegar libremente entre secciones; al registrar se validarán los campos obligatorios.</p></li>
+        <li><span>2</span><p>Puede guardar su progreso como borrador en cualquier momento.</p></li>
+      </ol>
+    </article>
+  }
+
+  @if (visible().sectionProgress) {
+    <article class="glass-card progress-card">
+      <header>
+        <span class="card-icon neutral"><img [src]="assets.icons.progress" alt="" /></span>
+        <h3>Progreso por sección</h3>
+        <button class="minimize-card" type="button" aria-label="Ocultar progreso por sección" title="Ocultar" (click)="panelClosed.emit('sectionProgress')">
+          <span></span>
+        </button>
+      </header>
+      <div class="progress-list">
+        @for(section of sections(); track section.key){
+          <div class="progress-row">
+            <div><strong>{{section.label}}</strong><b>{{section.percentage}}%</b></div>
+            <span class="bar"><i [style.width.%]="section.percentage"></i></span>
+          </div>
+        }
+      </div>
+    </article>
+  }
+
+  @if (visible().generalProgress) {
+    <article class="glass-card general">
+      <div class="general-head">
+        <h3>Progreso general</h3>
+        <div class="general-actions">
+          <strong>{{general()}}%</strong>
+          <button class="minimize-card" type="button" aria-label="Ocultar progreso general" title="Ocultar" (click)="panelClosed.emit('generalProgress')">
+            <span></span>
+          </button>
         </div>
-      }
-    </div>
-  </article>
-  <article class="glass-card general">
-    <div class="general-head"><h3>Progreso general</h3><strong>{{general()}}%</strong></div>
-    <span class="bar big"><i [style.width.%]="general()"></i></span>
-    <p>{{ general() === 100 ? 'Registro listo para finalizar.' : 'Completando el registro inicial.' }}</p>
-  </article>
-  <article class="glass-card recommendation">
-    <header><span class="card-icon warm"><img [src]="assets.icons.recommendation" alt="" /></span><h3>Recomendación</h3></header>
-    <p>Capture el nombre y los apellidos exactamente como aparecen en los documentos oficiales.</p>
-  </article>
+      </div>
+      <span class="bar big"><i [style.width.%]="general()"></i></span>
+      <p>{{ general() === 100 ? 'Registro listo para finalizar.' : 'Completando el registro inicial.' }}</p>
+    </article>
+  }
+
+  @if (visible().recommendation) {
+    <article class="glass-card recommendation">
+      <header>
+        <span class="card-icon warm"><img [src]="assets.icons.recommendation" alt="" /></span>
+        <h3>Recomendación</h3>
+        <button class="minimize-card" type="button" aria-label="Ocultar recomendación" title="Ocultar" (click)="panelClosed.emit('recommendation')">
+          <span></span>
+        </button>
+      </header>
+      <p>Capture el nombre y los apellidos exactamente como aparecen en los documentos oficiales.</p>
+    </article>
+  }
 </aside>

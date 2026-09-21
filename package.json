@@ -1,15 +1,17 @@
 {
   "name": "kardex-policial-sspc",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "scripts": {
     "ng": "ng",
     "assets:figma": "node scripts/sync-figma-assets.mjs",
     "postinstall": "npm run assets:figma",
     "prestart": "npm run assets:figma",
-    "start": "ng serve",
+    "start": "ng serve --host 0.0.0.0 --port 4205 --proxy-config proxy.conf.cjs --poll 1000",
     "build": "ng build",
     "build:with-assets": "npm run assets:figma && ng build",
-    "test": "ng test"
+    "test": "ng test",
+    "start:local": "ng serve --host 127.0.0.1 --port 4205 --proxy-config proxy.conf.cjs",
+    "start:network": "ng serve --host 0.0.0.0 --port 4205 --proxy-config proxy.conf.cjs --poll 1000"
   },
   "private": true,
   "dependencies": {

@@ -1,0 +1,30 @@
+<div class="dock-region" [class.open]="expanded()">
+  <button
+    class="touch-handle"
+    type="button"
+    [attr.aria-expanded]="expanded()"
+    aria-label="Mostrar paneles auxiliares"
+    (click)="toggleDock()"
+  >
+    <span class="handle-line"></span>
+    <span>Paneles</span>
+  </button>
+
+  <div class="dock" role="toolbar" aria-label="Paneles auxiliares">
+    @for (item of items(); track item.key) {
+      <button
+        type="button"
+        class="dock-item"
+        [class.visible]="item.visible"
+        [attr.aria-pressed]="item.visible"
+        [attr.aria-label]="item.visible ? 'Ocultar ' + item.label : 'Mostrar ' + item.label"
+        [title]="item.visible ? 'Ocultar ' + item.label : 'Mostrar ' + item.label"
+        (click)="togglePanel(item.key)"
+      >
+        <span class="icon-wrap"><img [src]="item.icon" alt="" /></span>
+        <small>{{ item.label }}</small>
+        <i class="state-dot"></i>
+      </button>
+    }
+  </div>
+</div>
