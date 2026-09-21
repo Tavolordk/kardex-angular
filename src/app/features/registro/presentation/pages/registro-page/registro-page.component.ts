@@ -67,6 +67,8 @@ export class RegistroPageComponent implements OnInit {
 
   readonly form = this.fb.group({
     curp: ['', [Validators.required, Validators.minLength(18), Validators.maxLength(18)]],
+    cuip: ['', Validators.required],
+    numeroNomina: ['', Validators.required],
     nombres: ['', Validators.required],
     primerApellido: ['', Validators.required],
     segundoApellido: [''],
@@ -77,7 +79,11 @@ export class RegistroPageComponent implements OnInit {
     entidadNacimiento: ['', Validators.required],
     municipioNacimiento: ['', Validators.required],
     estadoCivil: ['', Validators.required],
-    vulnerabilidad: [''],
+    licenciaConducir: ['no' as 'si' | 'no', Validators.required],
+    numeroLicencia: [''],
+    documentoLicenciaNombre: [''],
+    documentoLicenciaDataUrl: [''],
+    gruposVulnerables: this.fb.control<string[]>([]),
     dependientes: [''],
     entidadResidencia: ['', Validators.required],
     municipioResidencia: ['', Validators.required],
@@ -86,13 +92,13 @@ export class RegistroPageComponent implements OnInit {
     numeroInterior: [''],
     colonia: [''],
     codigoPostal: ['', [Validators.required, Validators.pattern(/^\d{5}$/)]],
-    telefono: [''],
-    correo: ['', Validators.email],
-    nombreContactoEmergencia: ['', Validators.required],
-    contactoEmergencia: ['', Validators.required],
+    telefono: ['', Validators.required],
+    correo: ['', [Validators.required, Validators.email]],
+    contactosEmergencia: this.fb.control<RegistroDraft['contactosEmergencia']>([]),
     fechaToma: ['', Validators.required],
+    vigenciaFotografia: ['3 años desde la fecha de toma', Validators.required],
+    origenCaptura: ['Expediente de ingreso', Validators.required],
     biometrico: ['si' as 'si' | 'no', Validators.required],
-    identificadorReferencia: ['CURP-BIO-9923847-X', Validators.required],
     photoDataUrl: [''],
     photoName: ['']
   });
@@ -103,9 +109,9 @@ export class RegistroPageComponent implements OnInit {
     {
       key: 'identificacion',
       title: 'Identificación básica',
-      requiredCount: 9,
+      requiredCount: 11,
       icon: ASSETS.icons.identification,
-      description: 'Información general, contacto y escolaridad inicial del elemento policial.'
+      description: 'Datos de identidad, claves institucionales y documentación básica del elemento policial.'
     },
     {
       key: 'origen',
@@ -117,24 +123,24 @@ export class RegistroPageComponent implements OnInit {
     {
       key: 'contacto',
       title: 'Contacto',
-      requiredCount: 2,
+      requiredCount: 3,
       icon: ASSETS.icons.contact,
       description: 'Información de contacto y referencia para casos de emergencia.'
     },
     {
       key: 'fotografia',
       title: 'Fotografía',
-      requiredCount: 1,
+      requiredCount: 4,
       icon: ASSETS.icons.camera,
       description: 'Registrar o consultar fotografía actualizada dentro del módulo Datos Personales.'
     }
   ];
 
   private readonly requiredByStep: Record<RegistroStepKey, (keyof RegistroDraft)[]> = {
-    identificacion: ['curp', 'nombres', 'primerApellido', 'fechaNacimiento', 'sexo', 'nacionalidad', 'entidadNacimiento', 'municipioNacimiento', 'estadoCivil'],
+    identificacion: ['curp', 'cuip', 'numeroNomina', 'nombres', 'primerApellido', 'fechaNacimiento', 'sexo', 'nacionalidad', 'entidadNacimiento', 'municipioNacimiento', 'estadoCivil'],
     origen: ['entidadResidencia', 'municipioResidencia', 'calle', 'codigoPostal'],
-    contacto: ['nombreContactoEmergencia', 'contactoEmergencia'],
-    fotografia: ['fechaToma', 'biometrico', 'identificadorReferencia', 'photoDataUrl']
+    contacto: ['telefono', 'correo', 'contactosEmergencia'],
+    fotografia: ['fechaToma', 'vigenciaFotografia', 'origenCaptura', 'photoDataUrl']
   };
 
   readonly sectionProgress = computed<SectionProgress[]>(() => {
@@ -268,7 +274,11 @@ export class RegistroPageComponent implements OnInit {
   }
 
   private percent(value: RegistroDraft, keys: (keyof RegistroDraft)[]): number {
-    const complete = keys.filter(key => String(value[key] ?? '').trim().length > 0).length;
+    const complete = keys.filter(key => {
+      const current = value[key];
+      if (Array.isArray(current)) return current.length > 0;
+      return String(current ?? '').trim().length > 0;
+    }).length;
     return Math.round((complete / keys.length) * 100);
   }
 }

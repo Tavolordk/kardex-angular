@@ -18,13 +18,13 @@
     </div>
     <div class="photo-data">
       <label class="data-field required"><span>Fecha de toma</span><input type="date" formControlName="fechaToma" /></label>
-      <div class="data-field"><span>Vigencia</span><div class="readonly">3 años desde la fecha de toma</div></div>
+      <label class="data-field required"><span>Vigencia</span><input formControlName="vigenciaFotografia" readonly /></label>
       <div class="data-field"><span>Estado de vigencia</span><div class="valid"><img [src]="assets.icons.statusDot" alt="" />Vigente</div></div>
-      <div class="data-field"><span>Origen de captura</span><div class="readonly">Expediente de ingreso</div></div>
+      <label class="data-field required"><span>Origen de captura</span><select formControlName="origenCaptura"><option>Expediente de ingreso</option><option>Actualización de expediente</option><option>Captura institucional</option></select></label>
     </div>
   </div>
   <div class="biometric-row">
     <div class="data-field required"><span>Cuenta con registro biométrico</span><div class="segmented"><button type="button" [class.selected]="form().get('biometrico')?.value==='si'" (click)="form().get('biometrico')?.setValue('si')">Sí</button><button type="button" [class.selected]="form().get('biometrico')?.value==='no'" (click)="form().get('biometrico')?.setValue('no')">No</button></div></div>
-    <label class="data-field required"><span>Identificador de referencia</span><input formControlName="identificadorReferencia" /></label>
+    <div class="biometric-note"><strong>Registro biométrico</strong><span>Indica si la fotografía está asociada a biométricos del elemento. El identificador técnico se administrará desde la integración del backend.</span></div>
   </div>
 </div>

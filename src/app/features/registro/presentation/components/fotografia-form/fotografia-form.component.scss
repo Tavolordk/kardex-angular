@@ -116,6 +116,7 @@
 }
 
 .data-field input,
+.data-field select,
 .readonly {
   width: 100%;
   height: 38px;
@@ -148,9 +149,24 @@
 
 .biometric-row {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(220px, .7fr) minmax(0, 1.3fr);
   gap: 24px;
+  align-items: end;
 }
+
+.biometric-note {
+  min-height: 58px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  padding: 10px 14px;
+  border: 1px solid rgba(114,129,150,.14);
+  border-radius: 12px;
+  background: rgba(114,129,150,.06);
+}
+.biometric-note strong { color: #4c5561; font: 800 11px var(--font-heading); text-transform: uppercase; }
+.biometric-note span { color: #737c87; font: 400 11px/15px var(--font-body); }
 
 .segmented {
   width: 100%;
@@ -193,6 +209,7 @@
   .photo-data,
   .biometric-row { grid-template-columns: 1fr; gap: 12px; }
   .data-field input,
+  .data-field select,
   .readonly { height: 44px; font-size: 16px; }
   .segmented button { min-height: 40px; }
 }

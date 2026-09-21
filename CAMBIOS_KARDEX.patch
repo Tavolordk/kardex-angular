@@ -1,0 +1,738 @@
+diff --git a/ADAPTACION_KARDEX_2026-09-21.md b/ADAPTACION_KARDEX_2026-09-21.md
+new file mode 100644
+index 0000000..78be55d
+--- /dev/null
++++ b/ADAPTACION_KARDEX_2026-09-21.md
+@@ -0,0 +1,37 @@
++# Adaptación Kardex Policial — 21/09/2026
++
++Este paquete contiene cambios reales sobre la implementación activa de `/registro`.
++
++## Identificación
++- Se agregaron CUIP y número de nómina.
++- Se agregó captura de licencia de conducir Sí/No.
++- Se agregó número de licencia y carga de documento PDF/JPG/PNG (máximo 5 MB).
++- La condición de vulnerabilidad simple se sustituyó por selección múltiple de grupos vulnerables.
++
++## Contacto
++- Teléfono y correo quedan como datos principales.
++- Los contactos de emergencia ahora se administran como una colección.
++- Se agregó botón **Agregar contacto**.
++- Se agregaron tarjetas para contactos registrados.
++- Se agregó modal para alta/edición con nombre, teléfono y parentesco.
++- Se agregó eliminación de contactos.
++
++## Fotografía
++- Se conserva la carga JPG/PNG con requisitos tipo pasaporte.
++- Se guardan fecha de toma, vigencia y origen de captura.
++- Se conserva el selector de biométrico Sí/No.
++- Se eliminó `identificadorReferencia` de la implementación activa.
++
++## Persistencia
++- El modelo de borrador cambió a la versión nueva.
++- La clave localStorage ahora es `kardex.registro.draft.v2`.
++
++## Archivos principales modificados
++- `src/app/features/registro/domain/models/registro.model.ts`
++- `src/app/features/registro/infrastructure/local-storage-registro.repository.ts`
++- `src/app/features/registro/presentation/pages/registro-page/registro-page.component.ts`
++- `src/app/features/registro/presentation/components/identificacion-form/*`
++- `src/app/features/registro/presentation/components/contacto-form/*`
++- `src/app/features/registro/presentation/components/fotografia-form/*`
++
++Consulta `CAMBIOS_KARDEX.patch` para ver el diff línea por línea contra el proyecto recibido.
+diff --git a/src/app/features/registro/domain/models/registro.model.ts b/src/app/features/registro/domain/models/registro.model.ts
+index a204771..332348c 100644
+--- a/src/app/features/registro/domain/models/registro.model.ts
++++ b/src/app/features/registro/domain/models/registro.model.ts
+@@ -1,7 +1,16 @@
+ export type RegistroStepKey = 'identificacion' | 'origen' | 'contacto' | 'fotografia';
+ 
++export interface EmergencyContact {
++  id: string;
++  nombre: string;
++  telefono: string;
++  parentesco: string;
++}
++
+ export interface RegistroDraft {
+   curp: string;
++  cuip: string;
++  numeroNomina: string;
+   nombres: string;
+   primerApellido: string;
+   segundoApellido: string;
+@@ -12,7 +21,11 @@ export interface RegistroDraft {
+   entidadNacimiento: string;
+   municipioNacimiento: string;
+   estadoCivil: string;
+-  vulnerabilidad: string;
++  licenciaConducir: 'si' | 'no';
++  numeroLicencia: string;
++  documentoLicenciaNombre: string;
++  documentoLicenciaDataUrl: string;
++  gruposVulnerables: string[];
+   dependientes: string;
+   entidadResidencia: string;
+   municipioResidencia: string;
+@@ -23,20 +36,49 @@ export interface RegistroDraft {
+   codigoPostal: string;
+   telefono: string;
+   correo: string;
+-  nombreContactoEmergencia: string;
+-  contactoEmergencia: string;
++  contactosEmergencia: EmergencyContact[];
+   fechaToma: string;
++  vigenciaFotografia: string;
++  origenCaptura: string;
+   biometrico: 'si' | 'no';
+-  identificadorReferencia: string;
+   photoDataUrl: string;
+   photoName: string;
+ }
+ 
+ export const EMPTY_REGISTRO_DRAFT: RegistroDraft = {
+-  curp: '', nombres: '', primerApellido: '', segundoApellido: '', fechaNacimiento: '', sexo: '',
+-  identidadGenero: '', nacionalidad: '', entidadNacimiento: '', municipioNacimiento: '', estadoCivil: '',
+-  vulnerabilidad: '', dependientes: '', entidadResidencia: '', municipioResidencia: '', calle: '',
+-  numeroExterior: '', numeroInterior: '', colonia: '', codigoPostal: '', telefono: '', correo: '',
+-  nombreContactoEmergencia: '', contactoEmergencia: '', fechaToma: '', biometrico: 'si',
+-  identificadorReferencia: 'CURP-BIO-9923847-X', photoDataUrl: '', photoName: ''
++  curp: '',
++  cuip: '',
++  numeroNomina: '',
++  nombres: '',
++  primerApellido: '',
++  segundoApellido: '',
++  fechaNacimiento: '',
++  sexo: '',
++  identidadGenero: '',
++  nacionalidad: '',
++  entidadNacimiento: '',
++  municipioNacimiento: '',
++  estadoCivil: '',
++  licenciaConducir: 'no',
++  numeroLicencia: '',
++  documentoLicenciaNombre: '',
++  documentoLicenciaDataUrl: '',
++  gruposVulnerables: [],
++  dependientes: '',
++  entidadResidencia: '',
++  municipioResidencia: '',
++  calle: '',
++  numeroExterior: '',
++  numeroInterior: '',
++  colonia: '',
++  codigoPostal: '',
++  telefono: '',
++  correo: '',
++  contactosEmergencia: [],
++  fechaToma: '',
++  vigenciaFotografia: '3 años desde la fecha de toma',
++  origenCaptura: 'Expediente de ingreso',
++  biometrico: 'si',
++  photoDataUrl: '',
++  photoName: ''
+ };
+diff --git a/src/app/features/registro/infrastructure/local-storage-registro.repository.ts b/src/app/features/registro/infrastructure/local-storage-registro.repository.ts
+index ceff97d..f583d8b 100644
+--- a/src/app/features/registro/infrastructure/local-storage-registro.repository.ts
++++ b/src/app/features/registro/infrastructure/local-storage-registro.repository.ts
+@@ -1,14 +1,21 @@
+ import { Injectable } from '@angular/core';
+-import { RegistroDraft } from '../domain/models/registro.model';
++import { EMPTY_REGISTRO_DRAFT, RegistroDraft } from '../domain/models/registro.model';
+ import { RegistroRepository } from '../domain/repositories/registro.repository';
+ 
+ @Injectable()
+ export class LocalStorageRegistroRepository extends RegistroRepository {
+-  private readonly key = 'kardex.registro.draft.v1';
++  private readonly key = 'kardex.registro.draft.v2';
+ 
+   async loadDraft(): Promise<RegistroDraft | null> {
+     const raw = localStorage.getItem(this.key);
+-    return raw ? JSON.parse(raw) as RegistroDraft : null;
++    if (!raw) return null;
++
++    try {
++      const stored = JSON.parse(raw) as Partial<RegistroDraft>;
++      return { ...EMPTY_REGISTRO_DRAFT, ...stored };
++    } catch {
++      return null;
++    }
+   }
+ 
+   async saveDraft(draft: RegistroDraft): Promise<void> {
+diff --git a/src/app/features/registro/presentation/components/contacto-form/contacto-form.component.html b/src/app/features/registro/presentation/components/contacto-form/contacto-form.component.html
+index 23ca993..c02635d 100644
+--- a/src/app/features/registro/presentation/components/contacto-form/contacto-form.component.html
++++ b/src/app/features/registro/presentation/components/contacto-form/contacto-form.component.html
+@@ -1,6 +1,63 @@
+-<div class="form-grid" [formGroup]="form()">
+-  <label class="field"><span>Número de teléfono</span><input formControlName="telefono" inputmode="tel" placeholder="Ej. 55 1234 5678" /></label>
+-  <label class="field"><span>Correo electrónico</span><input type="email" formControlName="correo" placeholder="correo@dominio.gob.mx" /></label>
+-  <label class="field required"><span>Nombre contacto de emergencia</span><input formControlName="nombreContactoEmergencia" placeholder="Nombre completo" /></label>
+-  <label class="field required"><span>Contacto de emergencia</span><input formControlName="contactoEmergencia" inputmode="tel" placeholder="Ej. 55 9876 5432" /></label>
++<div class="contact-section">
++  <div class="form-grid contact-primary" [formGroup]="form()">
++    <label class="field required"><span>Número de teléfono</span><input formControlName="telefono" inputmode="tel" placeholder="Ej. 55 1234 5678" /></label>
++    <label class="field required"><span>Correo electrónico</span><input type="email" formControlName="correo" placeholder="correo@dominio.gob.mx" /></label>
++  </div>
++
++  <section class="emergency-section">
++    <div class="section-title">
++      <div>
++        <h4>Contactos de emergencia</h4>
++        <p>Agrega una o más personas de referencia para casos de emergencia.</p>
++      </div>
++      <button type="button" class="add-contact" (click)="openNew()"><span>+</span> Agregar contacto</button>
++    </div>
++
++    @if (contacts().length) {
++      <div class="contact-cards">
++        @for (contact of contacts(); track contact.id; let i = $index) {
++          <article class="contact-card">
++            <div class="avatar">{{ contact.nombre.charAt(0).toUpperCase() }}</div>
++            <div class="contact-data">
++              <strong>{{ contact.nombre }}</strong>
++              <span>{{ contact.parentesco }}</span>
++              <a [href]="'tel:' + contact.telefono">{{ contact.telefono }}</a>
++            </div>
++            <div class="card-actions-inline">
++              <button type="button" (click)="openEdit(i)">Editar</button>
++              <button type="button" class="danger" (click)="deleteContact(i)">Eliminar</button>
++            </div>
++          </article>
++        }
++      </div>
++    } @else {
++      <button type="button" class="empty-state" (click)="openNew()">
++        <span class="empty-icon">+</span>
++        <strong>Aún no hay contactos de emergencia</strong>
++        <small>Selecciona “Agregar contacto” para registrar el primero.</small>
++      </button>
++    }
++  </section>
+ </div>
++
++@if (modalOpen()) {
++  <div class="modal-backdrop" (click)="closeModal()">
++    <section class="contact-modal" role="dialog" aria-modal="true" aria-labelledby="contact-modal-title" (click)="$event.stopPropagation()">
++      <header>
++        <div><span>CONTACTO DE EMERGENCIA</span><h3 id="contact-modal-title">{{ editingIndex() === null ? 'Agregar contacto' : 'Editar contacto' }}</h3></div>
++        <button type="button" class="close-modal" aria-label="Cerrar" (click)="closeModal()">×</button>
++      </header>
++
++      <div class="modal-fields" [formGroup]="contactForm">
++        <label class="field required"><span>Nombre completo</span><input formControlName="nombre" placeholder="Nombre y apellidos" /></label>
++        <label class="field required"><span>Teléfono</span><input formControlName="telefono" inputmode="tel" placeholder="Ej. 55 9876 5432" /></label>
++        <label class="field required"><span>Parentesco</span><select formControlName="parentesco"><option value="">Seleccione...</option><option>Madre</option><option>Padre</option><option>Esposo(a)</option><option>Hermano(a)</option><option>Hijo(a)</option><option>Familiar</option><option>Otro</option></select></label>
++      </div>
++
++      <footer>
++        <button type="button" class="secondary" (click)="closeModal()">Cancelar</button>
++        <button type="button" class="primary" (click)="saveContact()">{{ editingIndex() === null ? 'Agregar contacto' : 'Guardar cambios' }}</button>
++      </footer>
++    </section>
++  </div>
++}
+diff --git a/src/app/features/registro/presentation/components/contacto-form/contacto-form.component.scss b/src/app/features/registro/presentation/components/contacto-form/contacto-form.component.scss
+new file mode 100644
+index 0000000..b22e0b2
+--- /dev/null
++++ b/src/app/features/registro/presentation/components/contacto-form/contacto-form.component.scss
+@@ -0,0 +1,34 @@
++.contact-section { display: flex; flex-direction: column; gap: 22px; }
++.contact-primary { grid-template-columns: repeat(2,minmax(0,1fr)); }
++.emergency-section { padding-top: 18px; border-top: 1px solid rgba(114,129,150,.14); }
++.section-title { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 14px; }
++.section-title h4 { margin: 0 0 3px; color: #1b222b; font: 800 14px var(--font-heading); }
++.section-title p { margin: 0; color: #737c87; font: 400 12px/16px var(--font-body); }
++.add-contact { min-height: 38px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 14px; border: 1px solid #5d6b7e; border-radius: 12px; background: #1b222b; color: #fff; font: 700 12px var(--font-heading); cursor: pointer; }
++.add-contact span { font-size: 18px; line-height: 1; }
++.contact-cards { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
++.contact-card { min-width: 0; display: grid; grid-template-columns: 42px minmax(0,1fr) auto; align-items: center; gap: 12px; padding: 14px; border: 1px solid rgba(114,129,150,.16); border-radius: 16px; background: rgba(255,255,255,.68); box-shadow: 0 6px 18px rgba(27,34,43,.035); }
++.avatar { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 50%; background: #e9edf1; color: #4c5561; font: 800 15px var(--font-heading); }
++.contact-data { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
++.contact-data strong { overflow: hidden; color: #1b222b; text-overflow: ellipsis; white-space: nowrap; font: 800 13px var(--font-heading); }
++.contact-data span, .contact-data a { color: #737c87; font: 500 11.5px var(--font-body); text-decoration: none; }
++.card-actions-inline { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
++.card-actions-inline button { padding: 2px 4px; border: 0; background: none; color: #59687b; font: 700 10.5px var(--font-heading); cursor: pointer; }
++.card-actions-inline .danger { color: #9b5353; }
++.empty-state { width: 100%; min-height: 120px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; border: 1px dashed rgba(93,107,126,.28); border-radius: 16px; background: rgba(114,129,150,.045); color: #66707c; cursor: pointer; }
++.empty-state .empty-icon { width: 30px; height: 30px; display: grid; place-items: center; margin-bottom: 2px; border-radius: 50%; background: rgba(93,107,126,.1); color: #4c5561; font-size: 20px; }
++.empty-state strong { color: #4c5561; font: 800 12px var(--font-heading); }
++.empty-state small { font: 400 11px var(--font-body); }
++.modal-backdrop { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: 20px; background: rgba(22,28,35,.46); backdrop-filter: blur(4px); }
++.contact-modal { width: min(540px,100%); overflow: hidden; border: 1px solid rgba(255,255,255,.5); border-radius: 20px; background: #f7f8fa; box-shadow: 0 28px 70px rgba(15,20,26,.28); }
++.contact-modal header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 20px 22px 16px; border-bottom: 1px solid rgba(114,129,150,.12); }
++.contact-modal header span { color: #89919b; font: 800 9.5px var(--font-heading); letter-spacing: .8px; }
++.contact-modal h3 { margin: 3px 0 0; color: #1b222b; font: 800 18px var(--font-heading); }
++.close-modal { width: 32px; height: 32px; border: 0; border-radius: 50%; background: rgba(114,129,150,.09); color: #66707c; cursor: pointer; font-size: 22px; }
++.modal-fields { display: grid; gap: 14px; padding: 20px 22px; }
++.contact-modal footer { display: flex; justify-content: flex-end; gap: 10px; padding: 14px 22px 20px; }
++.contact-modal footer button { min-height: 38px; padding: 0 16px; border-radius: 11px; font: 700 12px var(--font-heading); cursor: pointer; }
++.contact-modal footer .secondary { border: 1px solid rgba(93,107,126,.25); background: #fff; color: #59687b; }
++.contact-modal footer .primary { border: 1px solid #5d6b7e; background: #1b222b; color: #fff; }
++@media (max-width: 760px) { .contact-primary, .contact-cards { grid-template-columns: 1fr; } .section-title { align-items: stretch; flex-direction: column; } .add-contact { width: 100%; } }
++@media (max-width: 520px) { .contact-card { grid-template-columns: 38px minmax(0,1fr); } .card-actions-inline { grid-column: 1 / -1; flex-direction: row; justify-content: flex-end; } .contact-modal { border-radius: 16px; } }
+diff --git a/src/app/features/registro/presentation/components/contacto-form/contacto-form.component.ts b/src/app/features/registro/presentation/components/contacto-form/contacto-form.component.ts
+index bd1f17c..d0f2e6a 100644
+--- a/src/app/features/registro/presentation/components/contacto-form/contacto-form.component.ts
++++ b/src/app/features/registro/presentation/components/contacto-form/contacto-form.component.ts
+@@ -1,4 +1,77 @@
+-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+-import { ReactiveFormsModule, FormGroup } from '@angular/forms';
+-@Component({selector:'app-contacto-form',standalone:true,imports:[ReactiveFormsModule],templateUrl:'./contacto-form.component.html',styleUrl:'../form-sections.scss',changeDetection:ChangeDetectionStrategy.OnPush})
+-export class ContactoFormComponent { readonly form=input.required<FormGroup>(); }
++import { ChangeDetectionStrategy, Component, inject, input, signal } from '@angular/core';
++import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
++import { EmergencyContact } from '../../../domain/models/registro.model';
++
++@Component({
++  selector: 'app-contacto-form',
++  standalone: true,
++  imports: [ReactiveFormsModule],
++  templateUrl: './contacto-form.component.html',
++  styleUrls: ['../form-sections.scss', './contacto-form.component.scss'],
++  changeDetection: ChangeDetectionStrategy.OnPush
++})
++export class ContactoFormComponent {
++  private readonly fb = inject(FormBuilder).nonNullable;
++
++  readonly form = input.required<FormGroup>();
++  readonly modalOpen = signal(false);
++  readonly editingIndex = signal<number | null>(null);
++
++  readonly contactForm = this.fb.group({
++    nombre: ['', Validators.required],
++    telefono: ['', [Validators.required, Validators.minLength(10)]],
++    parentesco: ['', Validators.required]
++  });
++
++  contacts(): EmergencyContact[] {
++    return (this.form().get('contactosEmergencia')?.value as EmergencyContact[] | null) ?? [];
++  }
++
++  openNew(): void {
++    this.editingIndex.set(null);
++    this.contactForm.reset({ nombre: '', telefono: '', parentesco: '' });
++    this.modalOpen.set(true);
++  }
++
++  openEdit(index: number): void {
++    const contact = this.contacts()[index];
++    if (!contact) return;
++    this.editingIndex.set(index);
++    this.contactForm.reset({ nombre: contact.nombre, telefono: contact.telefono, parentesco: contact.parentesco });
++    this.modalOpen.set(true);
++  }
++
++  closeModal(): void {
++    this.modalOpen.set(false);
++    this.editingIndex.set(null);
++  }
++
++  saveContact(): void {
++    if (this.contactForm.invalid) {
++      this.contactForm.markAllAsTouched();
++      return;
++    }
++
++    const value = this.contactForm.getRawValue();
++    const current = [...this.contacts()];
++    const index = this.editingIndex();
++
++    if (index === null) {
++      current.push({ id: `contact-${Date.now()}`, ...value });
++    } else {
++      current[index] = { ...current[index], ...value };
++    }
++
++    const control = this.form().get('contactosEmergencia');
++    control?.setValue(current);
++    control?.markAsDirty();
++    this.closeModal();
++  }
++
++  deleteContact(index: number): void {
++    const current = this.contacts().filter((_, currentIndex) => currentIndex !== index);
++    const control = this.form().get('contactosEmergencia');
++    control?.setValue(current);
++    control?.markAsDirty();
++  }
++}
+diff --git a/src/app/features/registro/presentation/components/fotografia-form/fotografia-form.component.html b/src/app/features/registro/presentation/components/fotografia-form/fotografia-form.component.html
+index 445ae33..008a810 100644
+--- a/src/app/features/registro/presentation/components/fotografia-form/fotografia-form.component.html
++++ b/src/app/features/registro/presentation/components/fotografia-form/fotografia-form.component.html
+@@ -18,13 +18,13 @@
+     </div>
+     <div class="photo-data">
+       <label class="data-field required"><span>Fecha de toma</span><input type="date" formControlName="fechaToma" /></label>
+-      <div class="data-field"><span>Vigencia</span><div class="readonly">3 años desde la fecha de toma</div></div>
++      <label class="data-field required"><span>Vigencia</span><input formControlName="vigenciaFotografia" readonly /></label>
+       <div class="data-field"><span>Estado de vigencia</span><div class="valid"><img [src]="assets.icons.statusDot" alt="" />Vigente</div></div>
+-      <div class="data-field"><span>Origen de captura</span><div class="readonly">Expediente de ingreso</div></div>
++      <label class="data-field required"><span>Origen de captura</span><select formControlName="origenCaptura"><option>Expediente de ingreso</option><option>Actualización de expediente</option><option>Captura institucional</option></select></label>
+     </div>
+   </div>
+   <div class="biometric-row">
+     <div class="data-field required"><span>Cuenta con registro biométrico</span><div class="segmented"><button type="button" [class.selected]="form().get('biometrico')?.value==='si'" (click)="form().get('biometrico')?.setValue('si')">Sí</button><button type="button" [class.selected]="form().get('biometrico')?.value==='no'" (click)="form().get('biometrico')?.setValue('no')">No</button></div></div>
+-    <label class="data-field required"><span>Identificador de referencia</span><input formControlName="identificadorReferencia" /></label>
++    <div class="biometric-note"><strong>Registro biométrico</strong><span>Indica si la fotografía está asociada a biométricos del elemento. El identificador técnico se administrará desde la integración del backend.</span></div>
+   </div>
+ </div>
+diff --git a/src/app/features/registro/presentation/components/fotografia-form/fotografia-form.component.scss b/src/app/features/registro/presentation/components/fotografia-form/fotografia-form.component.scss
+index 6773505..2d6c09c 100644
+--- a/src/app/features/registro/presentation/components/fotografia-form/fotografia-form.component.scss
++++ b/src/app/features/registro/presentation/components/fotografia-form/fotografia-form.component.scss
+@@ -116,6 +116,7 @@
+ }
+ 
+ .data-field input,
++.data-field select,
+ .readonly {
+   width: 100%;
+   height: 38px;
+@@ -148,9 +149,24 @@
+ 
+ .biometric-row {
+   display: grid;
+-  grid-template-columns: repeat(2, minmax(0, 1fr));
++  grid-template-columns: minmax(220px, .7fr) minmax(0, 1.3fr);
+   gap: 24px;
++  align-items: end;
++}
++
++.biometric-note {
++  min-height: 58px;
++  display: flex;
++  flex-direction: column;
++  justify-content: center;
++  gap: 4px;
++  padding: 10px 14px;
++  border: 1px solid rgba(114,129,150,.14);
++  border-radius: 12px;
++  background: rgba(114,129,150,.06);
+ }
++.biometric-note strong { color: #4c5561; font: 800 11px var(--font-heading); text-transform: uppercase; }
++.biometric-note span { color: #737c87; font: 400 11px/15px var(--font-body); }
+ 
+ .segmented {
+   width: 100%;
+@@ -193,6 +209,7 @@
+   .photo-data,
+   .biometric-row { grid-template-columns: 1fr; gap: 12px; }
+   .data-field input,
++  .data-field select,
+   .readonly { height: 44px; font-size: 16px; }
+   .segmented button { min-height: 40px; }
+ }
+diff --git a/src/app/features/registro/presentation/components/identificacion-form/identificacion-form.component.html b/src/app/features/registro/presentation/components/identificacion-form/identificacion-form.component.html
+index ca3c493..68c10b2 100644
+--- a/src/app/features/registro/presentation/components/identificacion-form/identificacion-form.component.html
++++ b/src/app/features/registro/presentation/components/identificacion-form/identificacion-form.component.html
+@@ -1,15 +1,60 @@
+-<div class="form-grid" [formGroup]="form()">
+-  <label class="field required"><span>CURP</span><input formControlName="curp" maxlength="18" placeholder="Ej. ABCD000000MDFAAZP0" /></label>
+-  <label class="field required"><span>Nombre(s)</span><input formControlName="nombres" placeholder="Ej. Juan Carlos" /></label>
+-  <label class="field required"><span>Primer apellido</span><input formControlName="primerApellido" placeholder="Ej. Pérez" /></label>
+-  <label class="field"><span>Segundo apellido</span><input formControlName="segundoApellido" placeholder="Ej. García" /></label>
+-  <label class="field required"><span>Fecha de nacimiento</span><input type="date" formControlName="fechaNacimiento" /></label>
+-  <label class="field required"><span>Sexo</span><select formControlName="sexo"><option value="">Seleccione...</option><option>Femenino</option><option>Masculino</option><option>Otro</option></select></label>
+-  <label class="field"><span>Identidad de género</span><select formControlName="identidadGenero"><option value="">Seleccione...</option><option>Mujer</option><option>Hombre</option><option>No binario</option><option>Prefiero no especificar</option></select></label>
+-  <label class="field required"><span>Nacionalidad</span><select formControlName="nacionalidad"><option value="">Seleccione...</option><option>Mexicana</option><option>Otra</option></select></label>
+-  <label class="field required"><span>Entidad federativa nacimiento</span><select formControlName="entidadNacimiento"><option value="">Seleccione...</option><option>Guerrero</option><option>Ciudad de México</option><option>Estado de México</option><option>Jalisco</option></select></label>
+-  <label class="field required"><span>Municipio de nacimiento</span><select formControlName="municipioNacimiento"><option value="">Seleccione...</option><option>Acapulco de Juárez</option><option>Chilpancingo de los Bravo</option><option>Atoyac de Álvarez</option></select></label>
+-  <label class="field required"><span>Estado civil</span><select formControlName="estadoCivil"><option value="">Seleccione...</option><option>Soltero(a)</option><option>Casado(a)</option><option>Divorciado(a)</option><option>Viudo(a)</option></select></label>
+-  <label class="field"><span>Condición de vulnerabilidad</span><select formControlName="vulnerabilidad"><option value="">Seleccione...</option><option>Ninguna</option><option>Discapacidad</option><option>Otra</option></select></label>
+-  <label class="field"><span>Número de dependientes económicos</span><input type="number" min="0" formControlName="dependientes" placeholder="Ej. 3" /></label>
++<div class="identification-form" [formGroup]="form()">
++  <div class="form-grid">
++    <label class="field required"><span>CURP</span><input formControlName="curp" maxlength="18" placeholder="Ej. ABCD000000MDFAAZP0" /></label>
++    <label class="field required"><span>CUIP</span><input formControlName="cuip" maxlength="30" placeholder="Clave Única de Identificación Policial" /></label>
++    <label class="field required"><span>Número de nómina</span><input formControlName="numeroNomina" maxlength="30" placeholder="Ej. SSPC-004821" /></label>
++    <label class="field required"><span>Nombre(s)</span><input formControlName="nombres" placeholder="Ej. Juan Carlos" /></label>
++    <label class="field required"><span>Primer apellido</span><input formControlName="primerApellido" placeholder="Ej. Pérez" /></label>
++    <label class="field"><span>Segundo apellido</span><input formControlName="segundoApellido" placeholder="Ej. García" /></label>
++    <label class="field required"><span>Fecha de nacimiento</span><input type="date" formControlName="fechaNacimiento" /></label>
++    <label class="field required"><span>Sexo</span><select formControlName="sexo"><option value="">Seleccione...</option><option>Femenino</option><option>Masculino</option><option>Otro</option></select></label>
++    <label class="field"><span>Identidad de género</span><select formControlName="identidadGenero"><option value="">Seleccione...</option><option>Mujer</option><option>Hombre</option><option>No binario</option><option>Prefiero no especificar</option></select></label>
++    <label class="field required"><span>Nacionalidad</span><select formControlName="nacionalidad"><option value="">Seleccione...</option><option>Mexicana</option><option>Otra</option></select></label>
++    <label class="field required"><span>Entidad federativa nacimiento</span><select formControlName="entidadNacimiento"><option value="">Seleccione...</option><option>Guerrero</option><option>Ciudad de México</option><option>Estado de México</option><option>Jalisco</option></select></label>
++    <label class="field required"><span>Municipio de nacimiento</span><select formControlName="municipioNacimiento"><option value="">Seleccione...</option><option>Acapulco de Juárez</option><option>Chilpancingo de los Bravo</option><option>Atoyac de Álvarez</option></select></label>
++    <label class="field required"><span>Estado civil</span><select formControlName="estadoCivil"><option value="">Seleccione...</option><option>Soltero(a)</option><option>Casado(a)</option><option>Divorciado(a)</option><option>Viudo(a)</option></select></label>
++    <label class="field"><span>Número de dependientes económicos</span><input type="number" min="0" formControlName="dependientes" placeholder="Ej. 3" /></label>
++  </div>
++
++  <section class="subsection">
++    <div class="subsection-heading">
++      <div><h4>Licencia de conducir</h4><p>Registra la información vigente y adjunta el documento cuando aplique.</p></div>
++      <div class="segmented" role="group" aria-label="Cuenta con licencia de conducir">
++        <button type="button" [class.selected]="form().get('licenciaConducir')?.value === 'si'" (click)="onLicenseModeChange('si')">Sí</button>
++        <button type="button" [class.selected]="form().get('licenciaConducir')?.value === 'no'" (click)="onLicenseModeChange('no')">No</button>
++      </div>
++    </div>
++
++    @if (form().get('licenciaConducir')?.value === 'si') {
++      <div class="license-grid">
++        <label class="field"><span>Número de licencia</span><input formControlName="numeroLicencia" placeholder="Número de licencia" /></label>
++        <div class="license-upload">
++          <span class="upload-label">Documento de licencia</span>
++          <div class="upload-row">
++            <label class="document-button">Adjuntar documento<input type="file" accept="application/pdf,image/png,image/jpeg" (change)="onLicenseFile($event)" /></label>
++            @if (form().get('documentoLicenciaNombre')?.value) {
++              <div class="file-chip"><span>{{ form().get('documentoLicenciaNombre')?.value }}</span><button type="button" (click)="removeLicenseFile()" aria-label="Quitar documento">×</button></div>
++            }
++          </div>
++          <small>PDF, JPG o PNG. Máximo 5 MB.</small>
++          @if (licenseError()) { <small class="error-text">{{ licenseError() }}</small> }
++        </div>
++      </div>
++    }
++  </section>
++
++  <section class="subsection">
++    <div class="subsection-heading simple">
++      <div><h4>Grupos vulnerables</h4><p>Puedes seleccionar más de una opción.</p></div>
++    </div>
++    <div class="vulnerability-grid">
++      @for (group of vulnerableGroups; track group) {
++        <label class="check-card" [class.selected]="hasVulnerableGroup(group)">
++          <input type="checkbox" [checked]="hasVulnerableGroup(group)" (change)="toggleVulnerableGroup(group, $any($event.target).checked)" />
++          <span class="check-indicator"></span>
++          <span>{{ group }}</span>
++        </label>
++      }
++    </div>
++  </section>
+ </div>
+diff --git a/src/app/features/registro/presentation/components/identificacion-form/identificacion-form.component.scss b/src/app/features/registro/presentation/components/identificacion-form/identificacion-form.component.scss
+new file mode 100644
+index 0000000..87088fa
+--- /dev/null
++++ b/src/app/features/registro/presentation/components/identificacion-form/identificacion-form.component.scss
+@@ -0,0 +1,29 @@
++.identification-form { display: flex; flex-direction: column; gap: 22px; }
++.subsection { padding-top: 18px; border-top: 1px solid rgba(114,129,150,.14); }
++.subsection-heading { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 14px; }
++.subsection-heading.simple { justify-content: flex-start; }
++.subsection-heading h4 { margin: 0 0 3px; color: #1b222b; font: 800 14px var(--font-heading); }
++.subsection-heading p { margin: 0; color: #737c87; font: 400 12px/16px var(--font-body); }
++.segmented { min-width: 160px; display: grid; grid-template-columns: 1fr 1fr; padding: 3px; border: 1px solid rgba(114,129,150,.16); border-radius: 12px; background: rgba(114,129,150,.1); }
++.segmented button { min-height: 34px; border: 0; border-radius: 9px; background: transparent; color: #66707c; font: 700 12px var(--font-heading); cursor: pointer; }
++.segmented button.selected { background: #fff; color: #1b222b; box-shadow: 0 2px 6px rgba(27,34,43,.1); }
++.license-grid { display: grid; grid-template-columns: minmax(220px,.7fr) minmax(0,1.3fr); gap: 18px; }
++.license-upload { min-width: 0; display: flex; flex-direction: column; gap: 6px; }
++.upload-label { color: #4c5561; font: 700 11.2px/13px var(--font-heading); letter-spacing: .36px; text-transform: uppercase; }
++.upload-row { display: flex; align-items: center; gap: 10px; min-width: 0; }
++.document-button { min-height: 38px; display: inline-flex; align-items: center; padding: 0 14px; border: 1px solid #5d6b7e; border-radius: 12px; background: #1b222b; color: #fff; font: 700 12px var(--font-heading); cursor: pointer; white-space: nowrap; }
++.document-button input { display: none; }
++.file-chip { min-width: 0; max-width: 100%; height: 38px; display: flex; align-items: center; gap: 8px; padding: 0 8px 0 12px; border: 1px solid rgba(114,129,150,.18); border-radius: 12px; background: rgba(255,255,255,.72); color: #4c5561; }
++.file-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 500 12px var(--font-body); }
++.file-chip button { width: 24px; height: 24px; flex: 0 0 auto; border: 0; border-radius: 50%; background: rgba(185,110,110,.12); color: #8b3f3f; cursor: pointer; font-size: 18px; line-height: 20px; }
++.license-upload small { color: #7a838e; font: 400 10.5px var(--font-body); }
++.license-upload .error-text { color: #8b3f3f; font-weight: 700; }
++.vulnerability-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 10px; }
++.check-card { min-height: 42px; display: flex; align-items: center; gap: 10px; padding: 9px 12px; border: 1px solid rgba(114,129,150,.16); border-radius: 12px; background: rgba(255,255,255,.58); color: #4c5561; cursor: pointer; font: 600 11.5px/15px var(--font-body); transition: .15s ease; }
++.check-card:hover { border-color: rgba(93,107,126,.45); background: rgba(255,255,255,.9); }
++.check-card.selected { border-color: rgba(93,107,126,.5); background: rgba(93,107,126,.09); color: #1b222b; }
++.check-card input { position: absolute; opacity: 0; pointer-events: none; }
++.check-indicator { width: 16px; height: 16px; flex: 0 0 auto; border: 1px solid rgba(93,107,126,.45); border-radius: 5px; background: #fff; box-shadow: inset 0 1px rgba(255,255,255,.8); }
++.check-card.selected .check-indicator { border: 4px solid #5d6b7e; }
++@media (max-width: 1180px) { .vulnerability-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
++@media (max-width: 720px) { .subsection-heading { align-items: stretch; flex-direction: column; } .segmented { width: 100%; } .license-grid, .vulnerability-grid { grid-template-columns: 1fr; } .upload-row { align-items: stretch; flex-direction: column; } .document-button { justify-content: center; } .file-chip { width: 100%; } }
+diff --git a/src/app/features/registro/presentation/components/identificacion-form/identificacion-form.component.ts b/src/app/features/registro/presentation/components/identificacion-form/identificacion-form.component.ts
+index 9a44ea1..5622a6d 100644
+--- a/src/app/features/registro/presentation/components/identificacion-form/identificacion-form.component.ts
++++ b/src/app/features/registro/presentation/components/identificacion-form/identificacion-form.component.ts
+@@ -1,4 +1,84 @@
+-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+-import { ReactiveFormsModule, FormGroup } from '@angular/forms';
+-@Component({selector:'app-identificacion-form',standalone:true,imports:[ReactiveFormsModule],templateUrl:'./identificacion-form.component.html',styleUrl:'../form-sections.scss',changeDetection:ChangeDetectionStrategy.OnPush})
+-export class IdentificacionFormComponent { readonly form=input.required<FormGroup>(); }
++import { ChangeDetectionStrategy, Component, input, signal } from '@angular/core';
++import { FormGroup, ReactiveFormsModule } from '@angular/forms';
++
++@Component({
++  selector: 'app-identificacion-form',
++  standalone: true,
++  imports: [ReactiveFormsModule],
++  templateUrl: './identificacion-form.component.html',
++  styleUrls: ['../form-sections.scss', './identificacion-form.component.scss'],
++  changeDetection: ChangeDetectionStrategy.OnPush
++})
++export class IdentificacionFormComponent {
++  readonly form = input.required<FormGroup>();
++  readonly licenseError = signal('');
++
++  readonly vulnerableGroups = [
++    'Ninguno',
++    'Persona con discapacidad',
++    'Persona indígena',
++    'Persona afromexicana',
++    'Persona adulta mayor',
++    'Persona de la diversidad sexual',
++    'Otro'
++  ];
++
++  hasVulnerableGroup(group: string): boolean {
++    const selected = this.form().get('gruposVulnerables')?.value as string[] | null;
++    return selected?.includes(group) ?? false;
++  }
++
++  toggleVulnerableGroup(group: string, checked: boolean): void {
++    const control = this.form().get('gruposVulnerables');
++    const current = [...((control?.value as string[] | null) ?? [])];
++
++    let next = checked ? [...new Set([...current, group])] : current.filter(item => item !== group);
++    if (group === 'Ninguno' && checked) next = ['Ninguno'];
++    if (group !== 'Ninguno' && checked) next = next.filter(item => item !== 'Ninguno');
++
++    control?.setValue(next);
++    control?.markAsDirty();
++  }
++
++  onLicenseModeChange(value: 'si' | 'no'): void {
++    this.form().get('licenciaConducir')?.setValue(value);
++    if (value === 'no') {
++      this.form().patchValue({
++        numeroLicencia: '',
++        documentoLicenciaNombre: '',
++        documentoLicenciaDataUrl: ''
++      });
++      this.licenseError.set('');
++    }
++  }
++
++  onLicenseFile(event: Event): void {
++    const inputEl = event.target as HTMLInputElement;
++    const file = inputEl.files?.[0];
++    inputEl.value = '';
++    if (!file) return;
++
++    this.licenseError.set('');
++    const accepted = ['application/pdf', 'image/jpeg', 'image/png'];
++    if (!accepted.includes(file.type)) {
++      this.licenseError.set('El documento debe ser PDF, JPG o PNG.');
++      return;
++    }
++    if (file.size > 5 * 1024 * 1024) {
++      this.licenseError.set('El documento debe pesar máximo 5 MB.');
++      return;
++    }
++
++    const reader = new FileReader();
++    reader.onload = () => this.form().patchValue({
++      documentoLicenciaNombre: file.name,
++      documentoLicenciaDataUrl: String(reader.result ?? '')
++    });
++    reader.readAsDataURL(file);
++  }
++
++  removeLicenseFile(): void {
++    this.form().patchValue({ documentoLicenciaNombre: '', documentoLicenciaDataUrl: '' });
++    this.licenseError.set('');
++  }
++}
+diff --git a/src/app/features/registro/presentation/pages/registro-page/registro-page.component.ts b/src/app/features/registro/presentation/pages/registro-page/registro-page.component.ts
+index 7c541e4..2a25ca1 100644
+--- a/src/app/features/registro/presentation/pages/registro-page/registro-page.component.ts
++++ b/src/app/features/registro/presentation/pages/registro-page/registro-page.component.ts
+@@ -67,6 +67,8 @@ export class RegistroPageComponent implements OnInit {
+ 
+   readonly form = this.fb.group({
+     curp: ['', [Validators.required, Validators.minLength(18), Validators.maxLength(18)]],
++    cuip: ['', Validators.required],
++    numeroNomina: ['', Validators.required],
+     nombres: ['', Validators.required],
+     primerApellido: ['', Validators.required],
+     segundoApellido: [''],
+@@ -77,7 +79,11 @@ export class RegistroPageComponent implements OnInit {
+     entidadNacimiento: ['', Validators.required],
+     municipioNacimiento: ['', Validators.required],
+     estadoCivil: ['', Validators.required],
+-    vulnerabilidad: [''],
++    licenciaConducir: ['no' as 'si' | 'no', Validators.required],
++    numeroLicencia: [''],
++    documentoLicenciaNombre: [''],
++    documentoLicenciaDataUrl: [''],
++    gruposVulnerables: this.fb.control<string[]>([]),
+     dependientes: [''],
+     entidadResidencia: ['', Validators.required],
+     municipioResidencia: ['', Validators.required],
+@@ -86,13 +92,13 @@ export class RegistroPageComponent implements OnInit {
+     numeroInterior: [''],
+     colonia: [''],
+     codigoPostal: ['', [Validators.required, Validators.pattern(/^\d{5}$/)]],
+-    telefono: [''],
+-    correo: ['', Validators.email],
+-    nombreContactoEmergencia: ['', Validators.required],
+-    contactoEmergencia: ['', Validators.required],
++    telefono: ['', Validators.required],
++    correo: ['', [Validators.required, Validators.email]],
++    contactosEmergencia: this.fb.control<RegistroDraft['contactosEmergencia']>([]),
+     fechaToma: ['', Validators.required],
++    vigenciaFotografia: ['3 años desde la fecha de toma', Validators.required],
++    origenCaptura: ['Expediente de ingreso', Validators.required],
+     biometrico: ['si' as 'si' | 'no', Validators.required],
+-    identificadorReferencia: ['CURP-BIO-9923847-X', Validators.required],
+     photoDataUrl: [''],
+     photoName: ['']
+   });
+@@ -103,9 +109,9 @@ export class RegistroPageComponent implements OnInit {
+     {
+       key: 'identificacion',
+       title: 'Identificación básica',
+-      requiredCount: 9,
++      requiredCount: 11,
+       icon: ASSETS.icons.identification,
+-      description: 'Información general, contacto y escolaridad inicial del elemento policial.'
++      description: 'Datos de identidad, claves institucionales y documentación básica del elemento policial.'
+     },
+     {
+       key: 'origen',
+@@ -117,24 +123,24 @@ export class RegistroPageComponent implements OnInit {
+     {
+       key: 'contacto',
+       title: 'Contacto',
+-      requiredCount: 2,
++      requiredCount: 3,
+       icon: ASSETS.icons.contact,
+       description: 'Información de contacto y referencia para casos de emergencia.'
+     },
+     {
+       key: 'fotografia',
+       title: 'Fotografía',
+-      requiredCount: 1,
++      requiredCount: 4,
+       icon: ASSETS.icons.camera,
+       description: 'Registrar o consultar fotografía actualizada dentro del módulo Datos Personales.'
+     }
+   ];
+ 
+   private readonly requiredByStep: Record<RegistroStepKey, (keyof RegistroDraft)[]> = {
+-    identificacion: ['curp', 'nombres', 'primerApellido', 'fechaNacimiento', 'sexo', 'nacionalidad', 'entidadNacimiento', 'municipioNacimiento', 'estadoCivil'],
++    identificacion: ['curp', 'cuip', 'numeroNomina', 'nombres', 'primerApellido', 'fechaNacimiento', 'sexo', 'nacionalidad', 'entidadNacimiento', 'municipioNacimiento', 'estadoCivil'],
+     origen: ['entidadResidencia', 'municipioResidencia', 'calle', 'codigoPostal'],
+-    contacto: ['nombreContactoEmergencia', 'contactoEmergencia'],
+-    fotografia: ['fechaToma', 'biometrico', 'identificadorReferencia', 'photoDataUrl']
++    contacto: ['telefono', 'correo', 'contactosEmergencia'],
++    fotografia: ['fechaToma', 'vigenciaFotografia', 'origenCaptura', 'photoDataUrl']
+   };
+ 
+   readonly sectionProgress = computed<SectionProgress[]>(() => {
+@@ -268,7 +274,11 @@ export class RegistroPageComponent implements OnInit {
+   }
+ 
+   private percent(value: RegistroDraft, keys: (keyof RegistroDraft)[]): number {
+-    const complete = keys.filter(key => String(value[key] ?? '').trim().length > 0).length;
++    const complete = keys.filter(key => {
++      const current = value[key];
++      if (Array.isArray(current)) return current.length > 0;
++      return String(current ?? '').trim().length > 0;
++    }).length;
+     return Math.round((complete / keys.length) * 100);
+   }
+ }

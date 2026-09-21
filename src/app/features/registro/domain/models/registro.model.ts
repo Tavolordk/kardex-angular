@@ -1,7 +1,16 @@
 export type RegistroStepKey = 'identificacion' | 'origen' | 'contacto' | 'fotografia';
 
+export interface EmergencyContact {
+  id: string;
+  nombre: string;
+  telefono: string;
+  parentesco: string;
+}
+
 export interface RegistroDraft {
   curp: string;
+  cuip: string;
+  numeroNomina: string;
   nombres: string;
   primerApellido: string;
   segundoApellido: string;
@@ -12,7 +21,11 @@ export interface RegistroDraft {
   entidadNacimiento: string;
   municipioNacimiento: string;
   estadoCivil: string;
-  vulnerabilidad: string;
+  licenciaConducir: 'si' | 'no';
+  numeroLicencia: string;
+  documentoLicenciaNombre: string;
+  documentoLicenciaDataUrl: string;
+  gruposVulnerables: string[];
   dependientes: string;
   entidadResidencia: string;
   municipioResidencia: string;
@@ -23,20 +36,49 @@ export interface RegistroDraft {
   codigoPostal: string;
   telefono: string;
   correo: string;
-  nombreContactoEmergencia: string;
-  contactoEmergencia: string;
+  contactosEmergencia: EmergencyContact[];
   fechaToma: string;
+  vigenciaFotografia: string;
+  origenCaptura: string;
   biometrico: 'si' | 'no';
-  identificadorReferencia: string;
   photoDataUrl: string;
   photoName: string;
 }
 
 export const EMPTY_REGISTRO_DRAFT: RegistroDraft = {
-  curp: '', nombres: '', primerApellido: '', segundoApellido: '', fechaNacimiento: '', sexo: '',
-  identidadGenero: '', nacionalidad: '', entidadNacimiento: '', municipioNacimiento: '', estadoCivil: '',
-  vulnerabilidad: '', dependientes: '', entidadResidencia: '', municipioResidencia: '', calle: '',
-  numeroExterior: '', numeroInterior: '', colonia: '', codigoPostal: '', telefono: '', correo: '',
-  nombreContactoEmergencia: '', contactoEmergencia: '', fechaToma: '', biometrico: 'si',
-  identificadorReferencia: 'CURP-BIO-9923847-X', photoDataUrl: '', photoName: ''
+  curp: '',
+  cuip: '',
+  numeroNomina: '',
+  nombres: '',
+  primerApellido: '',
+  segundoApellido: '',
+  fechaNacimiento: '',
+  sexo: '',
+  identidadGenero: '',
+  nacionalidad: '',
+  entidadNacimiento: '',
+  municipioNacimiento: '',
+  estadoCivil: '',
+  licenciaConducir: 'no',
+  numeroLicencia: '',
+  documentoLicenciaNombre: '',
+  documentoLicenciaDataUrl: '',
+  gruposVulnerables: [],
+  dependientes: '',
+  entidadResidencia: '',
+  municipioResidencia: '',
+  calle: '',
+  numeroExterior: '',
+  numeroInterior: '',
+  colonia: '',
+  codigoPostal: '',
+  telefono: '',
+  correo: '',
+  contactosEmergencia: [],
+  fechaToma: '',
+  vigenciaFotografia: '3 años desde la fecha de toma',
+  origenCaptura: 'Expediente de ingreso',
+  biometrico: 'si',
+  photoDataUrl: '',
+  photoName: ''
 };
