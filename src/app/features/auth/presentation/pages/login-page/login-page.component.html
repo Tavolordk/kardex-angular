@@ -1,0 +1,146 @@
+<div class="login-shell" [class.is-verification]="step() === 'verification'">
+  <div class="login-backdrop" aria-hidden="true"></div>
+  <app-animated-wave-background class="login-wave-animation" aria-hidden="true" />
+  <div class="login-tone" aria-hidden="true"></div>
+
+  <main class="login-content">
+    <header class="login-brand">
+      <div class="brand-image-wrap">
+        <img [src]="assets.branding.seguridad" alt="Seguridad - Secretaría de Seguridad y Protección Ciudadana" />
+      </div>
+      <div class="brand-title"><h1>KÁRDEX SSPC</h1></div>
+      <div class="title-separator" aria-hidden="true"><span></span></div>
+    </header>
+
+    <section class="login-card" [class.verification-card]="step() === 'verification'">
+      <header class="card-heading">
+        <h2>{{ step() === 'credentials' ? 'Bienvenido' : 'Verificación de identidad' }}</h2>
+        <p>
+          @if (step() === 'credentials') {
+            Ingresa tus credenciales institucionales para iniciar el proceso de acceso seguro.
+          } @else {
+            Para proteger la información del expediente policial, confirma tu acceso con el código de seguridad de seis dígitos.
+          }
+        </p>
+      </header>
+
+      <div class="steps-margin">
+        <ol class="steps" aria-label="Progreso de autenticación">
+          <li [class.active]="step() === 'credentials'" [class.done]="step() === 'verification'">
+            <span class="step-number">1</span><span class="step-label">Credenciales</span>
+          </li>
+          <li [class.active]="step() === 'verification'">
+            <span class="step-number">2</span><span class="step-label">Verificación</span>
+          </li>
+        </ol>
+      </div>
+
+      @if (step() === 'credentials') {
+        <form class="credentials-form" [formGroup]="credentialsForm" (ngSubmit)="submitCredentials()" novalidate>
+          @if (currentChannel() === 'email') {
+            <div class="field-group">
+              <label for="email">Correo electrónico</label>
+              <div class="field-shell" [class.invalid]="credentialsForm.controls.email.touched && credentialsForm.controls.email.invalid">
+                <span class="field-icon"><img [src]="assets.icons.mail" alt="" /></span>
+                <input id="email" type="email" formControlName="email" autocomplete="username" placeholder="Ingresa tu correo electrónico" />
+              </div>
+            </div>
+          } @else {
+            <div class="field-group">
+              <label for="phone">Número de celular</label>
+              <div class="field-shell" [class.invalid]="credentialsForm.controls.phone.touched && credentialsForm.controls.phone.invalid">
+                <span class="field-icon"><img [src]="assets.icons.phone" alt="" /></span>
+                <input id="phone" type="tel" inputmode="numeric" maxlength="10" formControlName="phone" autocomplete="tel" placeholder="5567890678" />
+              </div>
+            </div>
+          }
+
+          <fieldset class="verification-method">
+            <legend>Medio de verificación</legend>
+            <div class="method-options">
+              @for (option of verificationOptions; track option.value) {
+                <label class="method-option" [class.selected]="credentialsForm.controls.channel.value === option.value">
+                  <input
+                    type="radio"
+                    name="channel"
+                    [value]="option.value"
+                    [checked]="credentialsForm.controls.channel.value === option.value"
+                    (change)="selectChannel(option.value)"
+                  />
+                  <img [src]="option.icon" alt="" />
+                  <span>{{ option.label }}</span>
+                </label>
+              }
+            </div>
+          </fieldset>
+
+          <div class="field-group captcha-group">
+            <label for="captcha">Captcha</label>
+            <div class="captcha-row">
+              <div class="captcha-code" aria-label="Código captcha">{{ captchaCode() }}</div>
+              <button class="captcha-refresh" type="button" aria-label="Generar otro captcha" (click)="refreshCaptcha()">
+                <img [src]="assets.icons.refresh" alt="" />
+              </button>
+            </div>
+            <div class="field-shell captcha-input" [class.invalid]="credentialsForm.controls.captcha.touched && credentialsForm.controls.captcha.invalid">
+              <span class="field-icon"><img [src]="assets.icons.shield" alt="" /></span>
+              <input id="captcha" type="text" maxlength="6" formControlName="captcha" autocomplete="off" placeholder="Ingresa el código captcha" />
+            </div>
+          </div>
+
+          @if (errorMessage()) {
+            <p class="form-error" role="alert">{{ errorMessage() }}</p>
+          }
+
+          <button class="continue-button" type="submit" [disabled]="busy()">
+            <span>{{ busy() ? 'Validando...' : 'Continuar' }}</span>
+            <img [src]="assets.icons.arrowRight" alt="" />
+          </button>
+        </form>
+      } @else {
+        <form class="verification-form" [formGroup]="verificationForm" (ngSubmit)="submitVerification()" novalidate>
+          <section class="verification-notice">
+            <span class="notice-icon"><img [src]="assets.icons.shield" alt="" /></span>
+            <div class="notice-copy">
+              <strong>Código enviado</strong>
+              <span>Enviamos un código de un solo uso a {{ destinationText() }}. El código es personal, temporal y no debe compartirse.</span>
+            </div>
+          </section>
+
+          <div class="otp-grid" aria-label="Código de verificación de seis dígitos">
+            @for (controlName of codeControlNames; track controlName; let index = $index) {
+              <input
+                #codeInput
+                type="text"
+                inputmode="numeric"
+                maxlength="1"
+                [formControlName]="controlName"
+                [attr.aria-label]="'Dígito ' + (index + 1)"
+                (input)="onCodeInput(index, $event)"
+                (keydown)="onCodeKeydown(index, $event)"
+              />
+            }
+          </div>
+
+          <p class="verification-copy">Si no recibiste el código, revisa tu bandeja de correo no deseado o solicita un nuevo envío.</p>
+          <div class="timer-row"><span class="timer-chip">Vigencia del código {{ formatTimer() }}</span></div>
+          <div class="resend-row"><button class="resend-button" type="button" [disabled]="busy()" (click)="resendCode()">Reenviar código</button></div>
+
+          @if (errorMessage()) {
+            <p class="form-error verification-error" role="alert">{{ errorMessage() }}</p>
+          }
+
+          <button class="continue-button" type="submit" [disabled]="busy() || secondsRemaining() === 0">
+            <span>{{ busy() ? 'Verificando...' : 'Continuar' }}</span>
+            <img [src]="assets.icons.arrowRight" alt="" />
+          </button>
+        </form>
+      }
+    </section>
+  </main>
+
+  <footer class="login-footer">
+    <span class="developer-chip">Desarrollado por UIIVT | DGSI</span>
+    <span class="version-chip">Versión 1.0.0</span>
+  </footer>
+</div>

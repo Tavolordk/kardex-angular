@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { ASSETS } from '../../../core/constants/assets';
 
 @Component({
@@ -9,5 +9,18 @@ import { ASSETS } from '../../../core/constants/assets';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class InstitutionalHeaderComponent {
+  @Input() displayName = 'Administrador Kardex';
+  @Input() role = 'Administrador';
+  @Output() readonly logoutRequested = new EventEmitter<void>();
+
   readonly assets = ASSETS;
+
+  get initials(): string {
+    return this.displayName
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map(part => part.charAt(0).toUpperCase())
+      .join('') || 'AK';
+  }
 }

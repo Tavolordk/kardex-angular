@@ -1,7 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ASSETS } from '../../../../../core/constants/assets';
+import { GetCurrentSessionUseCase } from '../../../../auth/application/get-current-session.use-case';
+import { SignOutUseCase } from '../../../../auth/application/sign-out.use-case';
 import { InstitutionalHeaderComponent } from '../../../../../shared/layout/institutional-header/institutional-header.component';
 import { SidebarComponent } from '../../../../../shared/layout/sidebar/sidebar.component';
 import { SectionHeaderComponent } from '../../../../../shared/ui/section-header/section-header.component';
@@ -57,10 +60,14 @@ const DEFAULT_HELPER_VISIBILITY: HelperPanelVisibility = {
 })
 export class RegistroPageComponent implements OnInit {
   private readonly fb = inject(FormBuilder).nonNullable;
+  private readonly router = inject(Router);
+  private readonly signOutUseCase = inject(SignOutUseCase);
+  private readonly getSessionUseCase = inject(GetCurrentSessionUseCase);
   private readonly helperStorageKey = 'kardex.helper-panels.v1';
 
   readonly facade = inject(RegistroDraftFacade);
   readonly assets = ASSETS;
+  readonly session = this.getSessionUseCase.execute();
   readonly sidebarOpen = signal(typeof window === 'undefined' ? true : window.innerWidth > 900);
   readonly photoError = signal('');
   readonly helperVisibility = signal<HelperPanelVisibility>({ ...DEFAULT_HELPER_VISIBILITY });
@@ -243,6 +250,11 @@ export class RegistroPageComponent implements OnInit {
   removePhoto(): void {
     this.form.patchValue({ photoDataUrl: '', photoName: '' });
     this.photoError.set('');
+  }
+
+  async logout(): Promise<void> {
+    this.signOutUseCase.execute();
+    await this.router.navigate(['/login']);
   }
 
   private setHelperPanelVisibility(key: HelperPanelKey, visible: boolean): void {

@@ -1,5 +1,9 @@
 <div class="app-shell">
-  <app-institutional-header />
+  <app-institutional-header
+    [displayName]="session?.displayName ?? 'Administrador Kardex'"
+    [role]="session?.role ?? 'Administrador'"
+    (logoutRequested)="logout()"
+  />
 
   <div class="shell-body">
     <app-sidebar [open]="sidebarOpen()" (toggled)="toggleSidebar()" />

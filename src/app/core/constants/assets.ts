@@ -23,6 +23,13 @@ export const ASSETS = {
     contact: '/assets/icons/contact.svg',
     camera: '/assets/icons/camera.svg',
     userRound: '/assets/icons/user-round.svg',
-    statusDot: '/assets/icons/status-dot.svg'
+    statusDot: '/assets/icons/status-dot.svg',
+    mail: '/assets/icons/mail.svg',
+    phone: '/assets/icons/phone.svg',
+    telegram: '/assets/icons/telegram.svg',
+    sms: '/assets/icons/sms.svg',
+    refresh: '/assets/icons/refresh.svg',
+    shield: '/assets/icons/shield.svg',
+    arrowRight: '/assets/icons/arrow-right.svg'
   }
 } as const;

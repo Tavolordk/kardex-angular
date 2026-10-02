@@ -1,13 +1,20 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap");
+
 :root {
   --font-heading: "Plus Jakarta Sans", "Segoe UI", Arial, sans-serif;
   --font-body: Inter, "Segoe UI", Arial, sans-serif;
   color-scheme: light;
+  font-synthesis: none;
 }
+
 
 * { box-sizing: border-box; }
 html, body { min-height: 100%; margin: 0; }
 html { overflow-x: hidden; }
 body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: geometricPrecision;
   min-width: 320px;
   overflow-x: hidden;
   background: #fafafa;
