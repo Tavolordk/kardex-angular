@@ -8,7 +8,7 @@ export interface RegistroStep {
 }
 
 export interface SectionProgress {
-  key: RegistroStepKey;
+  key: RegistroStepKey | 'reclutamiento';
   label: string;
   percentage: number;
 }

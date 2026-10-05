@@ -1,0 +1,67 @@
+<section class="recruitment-history">
+  <header class="history-heading">
+    <div>
+      <h3>Reclutamiento y selección</h3>
+      <p>Historial y seguimiento de los procesos de reclutamiento y selección de la persona aspirante.</p>
+    </div>
+    <button type="button" class="add-process" (click)="openModal()">+&nbsp;&nbsp;Agregar proceso</button>
+  </header>
+
+  <div class="table-area">
+    <strong class="summary">{{ processes().length }} procesos registrados</strong>
+
+    <div class="process-table" role="table" aria-label="Procesos de reclutamiento y selección">
+      <div class="table-row table-header" role="row">
+        <span role="columnheader">Folio</span><span role="columnheader">Convocatoria</span><span role="columnheader">Estrategia</span>
+        <span role="columnheader">Fecha de registro</span><span role="columnheader">Estatus</span><span role="columnheader">Acciones</span>
+      </div>
+
+      @for (process of processes(); track process.folio; let i = $index) {
+        <div class="table-row process-row" [class.alt]="i % 2 === 1" role="row">
+          <span class="folio" role="cell">{{ process.folio }}</span>
+          <span role="cell">{{ process.convocatoria }}</span>
+          <span role="cell">{{ process.estrategia }}</span>
+          <span role="cell">{{ process.fecha }}</span>
+          <span role="cell"><em class="status" [class.approved]="process.estatus === 'Aprobado'">{{ process.estatus }}</em></span>
+          <span class="actions" role="cell">
+            <button type="button" class="icon-action edit" aria-label="Editar proceso" title="Editar" (click)="editProcess(i)">✎</button>
+            <button type="button" class="icon-action delete" aria-label="Eliminar proceso" title="Eliminar" (click)="deleteProcess(i)">⌫</button>
+          </span>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+@if (modalOpen()) {
+  <div class="process-modal-backdrop" (click)="closeModal()">
+    <section class="process-modal" role="dialog" aria-modal="true" aria-labelledby="process-modal-title" (click)="$event.stopPropagation()">
+      <div class="process-modal__content">
+        <header class="process-modal__heading">
+          <h3 id="process-modal-title">Reclutamiento y selección</h3>
+        </header>
+
+        <form class="process-form" [formGroup]="processForm">
+          <label class="field required"><span>Folio único del proceso de reclutamiento</span><input formControlName="folio" placeholder="Ej. ABCD000000MDFAAZP0" /></label>
+          <label class="field required"><span>Convocatoria</span><input formControlName="convocatoria" /></label>
+          <label class="field required"><span>Perfil de ingreso</span><input formControlName="perfilIngreso" /></label>
+
+          <label class="field required"><span>Estrategia de reclutamiento</span><select formControlName="estrategia"><option value="">Seleccione...</option>@for (item of strategies(); track item.value) { <option [value]="item.value">{{ item.label }}</option> }</select></label>
+          <label class="field required"><span>Especifique la estrategia</span><input formControlName="estrategiaDetalle" placeholder="Especifique" /></label>
+          <label class="field required"><span>Fecha de registro al proceso</span><input type="date" formControlName="fechaRegistro" /></label>
+
+          <label class="field required"><span>Estatus del proceso de selección</span><select formControlName="estatus"><option value="">Seleccione...</option>@for (item of statuses(); track item.value) { <option [value]="item.value">{{ item.label }}</option> }</select></label>
+          <label class="field"><span>Tiempo del proceso de reclutamiento y selección</span><input formControlName="tiempoProceso" placeholder="45 días" /></label>
+          <label class="field required"><span>Resultado del proceso de selección</span><select formControlName="resultado"><option value="">Seleccione...</option>@for (item of results(); track item.value) { <option [value]="item.value">{{ item.label }}</option> }</select></label>
+
+          <label class="field required"><span>Causa de no ingreso o no conclusión</span><select formControlName="causaNoIngreso"><option value="">Seleccione...</option>@for (item of noEntryCauses(); track item.value) { <option [value]="item.value">{{ item.label }}</option> }</select></label>
+          <label class="field required"><span>Fecha de resolución de selección</span><input type="date" formControlName="fechaResolucion" /></label>
+        </form>
+      </div>
+
+      <footer class="process-modal__actions">
+        <button type="button" class="add-process" (click)="addProcess()">+&nbsp;&nbsp;Agregar proceso</button>
+      </footer>
+    </section>
+  </div>
+}

@@ -25,6 +25,7 @@ import { IdentificacionFormComponent } from '../../components/identificacion-for
 import { OrigenResidenciaFormComponent } from '../../components/origen-residencia-form/origen-residencia-form.component';
 import { ContactoFormComponent } from '../../components/contacto-form/contacto-form.component';
 import { FotografiaFormComponent } from '../../components/fotografia-form/fotografia-form.component';
+import { ReclutamientoHistorialComponent } from '../../components/reclutamiento-historial/reclutamiento-historial.component';
 
 interface StepPresentation extends RegistroStep {
   formTitle: string;
@@ -52,7 +53,8 @@ const DEFAULT_HELPER_VISIBILITY: HelperPanelVisibility = {
     IdentificacionFormComponent,
     OrigenResidenciaFormComponent,
     ContactoFormComponent,
-    FotografiaFormComponent
+    FotografiaFormComponent,
+    ReclutamientoHistorialComponent
   ],
   providers: [RegistroDraftFacade, { provide: RegistroRepository, useClass: LocalStorageRegistroRepository }],
   templateUrl: './registro-page.component.html',
@@ -71,6 +73,7 @@ export class RegistroPageComponent implements OnInit {
   readonly session = this.getSessionUseCase.execute();
   readonly sidebarOpen = signal(typeof window === 'undefined' ? true : window.innerWidth > 900);
   readonly photoError = signal('');
+  readonly activeSection = signal<'datos' | 'reclutamiento'>('datos');
   readonly helperVisibility = signal<HelperPanelVisibility>({ ...DEFAULT_HELPER_VISIBILITY });
 
   readonly form = this.fb.group({
@@ -169,6 +172,26 @@ export class RegistroPageComponent implements OnInit {
     Math.round(this.sectionProgress().reduce((sum, item) => sum + item.percentage, 0) / this.sectionProgress().length)
   );
 
+  readonly displayedSectionProgress = computed<SectionProgress[]>(() =>
+    this.activeSection() === 'reclutamiento'
+      ? [{ key: 'reclutamiento', label: 'Reclutamiento y selección', percentage: 0 }]
+      : this.sectionProgress()
+  );
+
+  readonly displayedGeneralProgress = computed(() =>
+    this.activeSection() === 'reclutamiento' ? 0 : this.generalProgress()
+  );
+
+  readonly sectionHeaderTitle = computed(() =>
+    this.activeSection() === 'reclutamiento' ? 'Reclutamiento y selección' : (this.facade.activeStep() === 'fotografia' ? 'Registro' : 'Datos personales')
+  );
+
+  readonly sectionHeaderSubtitle = computed(() =>
+    this.activeSection() === 'reclutamiento'
+      ? 'Historial, estatus y resolución del trámite de incorporación institucional.'
+      : 'Captura inicial de información del personal policial'
+  );
+
   readonly completed = computed<Record<RegistroStepKey, boolean>>(() => ({
     identificacion: this.sectionProgress()[0].percentage === 100,
     origen: this.sectionProgress()[1].percentage === 100,
@@ -205,14 +228,26 @@ export class RegistroPageComponent implements OnInit {
   }
 
   previous(): void {
+    if (this.activeSection() === 'reclutamiento') {
+      this.activeSection.set('datos');
+      this.setStep('fotografia');
+      return;
+    }
     const index = this.activeIndex();
     if (index > 0) this.setStep(this.steps[index - 1].key);
   }
 
   next(): void {
+    if (this.activeSection() === 'reclutamiento') return;
     const index = this.activeIndex();
-    if (index < this.steps.length - 1) this.setStep(this.steps[index + 1].key);
+    if (index < this.steps.length - 1) {
+      this.setStep(this.steps[index + 1].key);
+      return;
+    }
+    this.activeSection.set('reclutamiento');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
+
 
   async saveDraft(): Promise<void> {
     await this.facade.saveDraft(this.form.getRawValue() as RegistroDraft);

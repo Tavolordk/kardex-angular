@@ -803,3 +803,37 @@
     padding: 0 14px;
   }
 }
+
+/* Figma 320:795 - Reclutamiento y selección histórico */
+.registration-card--recruitment {
+  min-height: 692px;
+}
+
+.registration-card--recruitment > app-reclutamiento-historial {
+  display: block;
+  min-height: 604px;
+}
+
+.registration-card--recruitment .recruitment-actions {
+  min-height: 63px;
+  padding: 18px 24px 0;
+  align-items: flex-start;
+}
+
+@media (min-width: 1501px) {
+  .registration-card--recruitment {
+    width: 1174px;
+    height: 692px;
+  }
+}
+
+@media (max-width: 1500px) {
+  .registration-card--recruitment {
+    min-height: 0;
+    height: auto;
+  }
+
+  .registration-card--recruitment > app-reclutamiento-historial {
+    min-height: 0;
+  }
+}

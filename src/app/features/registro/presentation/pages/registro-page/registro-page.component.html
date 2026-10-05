@@ -23,23 +23,23 @@
         <span></span><span></span><span></span>
       </button>
 
-      <app-section-header [title]="facade.activeStep() === 'fotografia' ? 'Registro' : 'Datos personales'" />
+      <app-section-header [title]="sectionHeaderTitle()" [subtitle]="sectionHeaderSubtitle()" />
 
       <div class="page-content" [class.without-help]="!hasVisiblePanels()">
         @if (hasVisiblePanels()) {
           <app-help-panel
-            [sections]="sectionProgress()"
-            [general]="generalProgress()"
+            [sections]="displayedSectionProgress()"
+            [general]="displayedGeneralProgress()"
             [visible]="helperVisibility()"
             (panelClosed)="hideHelperPanel($event)"
           />
         }
 
-        <section class="form-zone">
+        <section class="form-zone" [class.form-zone--recruitment]="activeSection() === 'reclutamiento'">
           <button
             class="nav-arrow previous"
             type="button"
-            [disabled]="activeIndex() === 0"
+            [disabled]="activeSection() === 'datos' && activeIndex() === 0"
             (click)="previous()"
             aria-label="Sección anterior"
           >
@@ -47,70 +47,72 @@
           </button>
 
           <div class="registration-stack">
-            <article class="registration-card"
-              [class.registration-card--identification]="facade.activeStep() === 'identificacion'"
-              [class.registration-card--contact]="facade.activeStep() === 'contacto'"
-              [class.registration-card--photo]="facade.activeStep() === 'fotografia'">
-              <app-step-navigation
-                [steps]="steps"
-                [active]="facade.activeStep()"
-                [completed]="completed()"
-                (changed)="setStep($event)"
-              />
+            @if (activeSection() === 'datos') {
+              <article class="registration-card"
+                [class.registration-card--identification]="facade.activeStep() === 'identificacion'"
+                [class.registration-card--contact]="facade.activeStep() === 'contacto'"
+                [class.registration-card--photo]="facade.activeStep() === 'fotografia'">
+                <app-step-navigation
+                  [steps]="steps"
+                  [active]="facade.activeStep()"
+                  [completed]="completed()"
+                  (changed)="setStep($event)"
+                />
 
-              <div class="card-content">
-                <header class="form-heading">
-                  <div>
-                    <div class="title-line">
-                      <h3>{{ activeMeta().formTitle }}</h3>
-                      @if (facade.activeStep() === 'fotografia') {
-                        <span class="photo-validity"><i aria-hidden="true"></i>Vigente</span>
-                      }
-                      @if (activeMeta().requiredCount > 0) { <span class="required-badge">{{ activeMeta().requiredCount }} REQ.</span> }
+                <div class="card-content">
+                  <header class="form-heading">
+                    <div>
+                      <div class="title-line">
+                        <h3>{{ activeMeta().formTitle }}</h3>
+                        @if (facade.activeStep() === 'fotografia') {
+                          <span class="photo-validity"><i aria-hidden="true"></i>Vigente</span>
+                        }
+                        @if (activeMeta().requiredCount > 0) { <span class="required-badge">{{ activeMeta().requiredCount }} REQ.</span> }
+                      </div>
+                      <p>{{ activeMeta().description }}</p>
                     </div>
-                    <p>{{ activeMeta().description }}</p>
+                    <b>{{ facade.activeStep() === 'fotografia' ? '4/ 4' : (activeIndex() + 1) + ' / 4' }}</b>
+                  </header>
+
+                  <div class="form-body">
+                    @switch(facade.activeStep()) {
+                      @case ('identificacion') { <app-identificacion-form [form]="form" /> }
+                      @case ('origen') { <app-origen-residencia-form [form]="form" /> }
+                      @case ('contacto') { <app-contacto-form [form]="form" /> }
+                      @case ('fotografia') {
+                        <app-fotografia-form
+                          [form]="form"
+                          [photoUrl]="photoUrl()"
+                          [photoName]="photoName()"
+                          [photoError]="photoError()"
+                          (photoSelected)="onPhotoSelected($event)"
+                          (photoRemoved)="removePhoto()"
+                        />
+                      }
+                    }
                   </div>
-                  <b>{{ facade.activeStep() === 'fotografia' ? '4/ 4' : (activeIndex() + 1) + ' / 4' }}</b>
-                </header>
-
-                <div class="form-body">
-                  @switch(facade.activeStep()) {
-                    @case ('identificacion') {
-                      <app-identificacion-form [form]="form" />
-                    }
-                    @case ('origen') {
-                      <app-origen-residencia-form [form]="form" />
-                    }
-                    @case ('contacto') {
-                      <app-contacto-form [form]="form" />
-                    }
-                    @case ('fotografia') {
-                      <app-fotografia-form
-                        [form]="form"
-                        [photoUrl]="photoUrl()"
-                        [photoName]="photoName()"
-                        [photoError]="photoError()"
-                        (photoSelected)="onPhotoSelected($event)"
-                        (photoRemoved)="removePhoto()"
-                      />
-                    }
-                  }
                 </div>
-              </div>
 
-              <footer class="card-actions">
-                <button type="button" class="save-button" [disabled]="facade.isSaving()" (click)="saveDraft()">
-                  <img [src]="assets.icons.save" alt="" />
-                  <span>{{ facade.isSaving() ? 'Guardando...' : 'Guardar borrador' }}</span>
-                </button>
-                @if (facade.saveState() === 'saved') {
-                  <span class="feedback success">Borrador guardado.</span>
-                }
-                @if (facade.saveState() === 'error') {
-                  <span class="feedback error">{{ facade.error() }}</span>
-                }
-              </footer>
-            </article>
+                <footer class="card-actions">
+                  <button type="button" class="save-button" [disabled]="facade.isSaving()" (click)="saveDraft()">
+                    <img [src]="assets.icons.save" alt="" />
+                    <span>{{ facade.isSaving() ? 'Guardando...' : 'Guardar borrador' }}</span>
+                  </button>
+                  @if (facade.saveState() === 'saved') { <span class="feedback success">Borrador guardado.</span> }
+                  @if (facade.saveState() === 'error') { <span class="feedback error">{{ facade.error() }}</span> }
+                </footer>
+              </article>
+            } @else {
+              <article class="registration-card registration-card--recruitment">
+                <app-reclutamiento-historial />
+                <footer class="card-actions recruitment-actions">
+                  <button type="button" class="save-button" [disabled]="facade.isSaving()" (click)="saveDraft()">
+                    <img [src]="assets.icons.save" alt="" />
+                    <span>{{ facade.isSaving() ? 'Guardando...' : 'Guardar borrador' }}</span>
+                  </button>
+                </footer>
+              </article>
+            }
 
             <app-utility-dock [items]="dockItems()" (toggled)="toggleHelperPanel($event)" />
           </div>
@@ -118,7 +120,7 @@
           <button
             class="nav-arrow next"
             type="button"
-            [disabled]="activeIndex() === steps.length - 1"
+            [disabled]="activeSection() === 'reclutamiento'"
             (click)="next()"
             aria-label="Siguiente sección"
           >
