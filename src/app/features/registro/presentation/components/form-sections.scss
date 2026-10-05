@@ -70,3 +70,12 @@ select:focus { border-color: rgba(93,107,126,.58); box-shadow: 0 0 0 3px rgba(11
     line-height: 12px;
   }
 }
+
+/* Desktop responsive columns. The viewport may still be >1180px while the
+   form itself is much narrower because of the sidebar/help panel. */
+@media (min-width: 1181px) and (max-width: 1499px) {
+  .form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: auto;
+  }
+}

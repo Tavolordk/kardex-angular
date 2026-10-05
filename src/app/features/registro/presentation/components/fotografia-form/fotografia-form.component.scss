@@ -239,3 +239,15 @@
     max-width: 220px;
   }
 }
+
+@media (min-width: 1181px) and (max-width: 1499px) {
+  .photo-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    height: auto;
+    min-height: 198.4286px;
+  }
+
+  .biometric-row {
+    grid-template-columns: minmax(250px, 38%) minmax(0, 1fr);
+  }
+}

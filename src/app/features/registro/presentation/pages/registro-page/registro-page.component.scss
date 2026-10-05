@@ -572,3 +572,234 @@
     max-width: 1096px;
   }
 }
+
+/* ==========================================================================
+   Responsive desktop pass - 2026-10-05
+   Preserve the 1920px Figma composition at large resolutions while allowing
+   the existing screens to shrink naturally on laptop and compact desktops.
+   ========================================================================== */
+.page-content {
+  width: 100%;
+  box-sizing: border-box;
+  grid-template-columns: minmax(210px, 260px) minmax(0, 1278px);
+  gap: clamp(14px, 1.15vw, 22px);
+  padding: clamp(20px, 1.56vw, 30px) clamp(18px, 2.08vw, 40px) 24px clamp(24px, 4.16vw, 80px);
+}
+
+.form-zone {
+  width: 100%;
+  max-width: 1278px;
+}
+
+.registration-stack {
+  width: 100%;
+}
+
+.registration-card {
+  width: 100%;
+  max-width: 1174px;
+  box-sizing: border-box;
+}
+
+.card-content,
+.card-actions {
+  box-sizing: border-box;
+}
+
+/* Between the exact Figma desktop and tablet layouts, fixed pixel geometry
+   caused horizontal overflow. In this range the card keeps the same visual
+   proportions but its width and height are content-driven. */
+@media (min-width: 1181px) and (max-width: 1919px) {
+  .page-content {
+    grid-template-columns: clamp(190px, 16vw, 240px) minmax(0, 1fr);
+    padding-inline: clamp(18px, 2vw, 32px);
+  }
+
+  .page-content.without-help {
+    grid-template-columns: minmax(0, 1fr);
+    padding-inline: clamp(18px, 3vw, 50px);
+  }
+
+  .registration-card--identification,
+  .registration-card--contact,
+  .registration-card--photo {
+    width: 100%;
+    min-width: 0;
+    height: auto;
+    flex: 1 1 auto;
+  }
+
+  .registration-card--identification .card-content,
+  .registration-card--contact .card-content,
+  .registration-card--photo .card-content {
+    width: 100%;
+    height: auto;
+    min-height: 0;
+  }
+
+  .registration-card--identification .form-body,
+  .registration-card--contact .form-body,
+  .registration-card--photo .form-body {
+    width: 100%;
+    max-width: none;
+    min-height: 0;
+  }
+
+  .registration-card--photo .form-heading,
+  .registration-card--contact .form-heading {
+    height: auto;
+  }
+
+  .registration-card--photo .form-heading > div:first-child,
+  .registration-card--photo .title-line,
+  .registration-card--photo .title-line h3,
+  .registration-card--photo .form-heading p {
+    width: auto;
+    max-width: 100%;
+    flex-basis: auto;
+  }
+
+  .registration-card--photo .title-line {
+    min-height: 31px;
+    height: auto;
+    padding-right: 0;
+  }
+
+  .registration-card--photo .photo-validity {
+    position: static;
+    width: auto;
+    height: 31px;
+    padding: 0 14px;
+  }
+
+  .registration-card--identification .card-actions,
+  .registration-card--contact .card-actions,
+  .registration-card--photo .card-actions {
+    height: auto;
+    min-height: 63px;
+  }
+}
+
+/* Typical 1366/1440 laptop desktops: prioritize readability instead of
+   squeezing three narrow columns into the remaining workspace. */
+@media (min-width: 1181px) and (max-width: 1499px) {
+  .card-content {
+    padding: 20px;
+  }
+
+  .form-heading {
+    margin-bottom: 16px;
+  }
+
+  .nav-arrow {
+    width: 36px;
+    height: 36px;
+    flex-basis: 36px;
+  }
+}
+
+/* Very wide desktop: keep the exact Figma geometry centered instead of
+   stretching indefinitely. */
+@media (min-width: 1920px) {
+  .page-content {
+    justify-content: center;
+  }
+}
+
+
+/* Re-assert the existing tablet/mobile layout after the desktop fluid rules. */
+@media (max-width: 1180px) {
+  .page-content,
+  .page-content.without-help {
+    grid-template-columns: minmax(0, 1fr);
+    justify-content: stretch;
+    padding-inline: 24px;
+  }
+
+  .form-zone {
+    max-width: none;
+  }
+
+  .registration-card {
+    max-width: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .page-content,
+  .page-content.without-help {
+    padding: 18px 12px 24px;
+  }
+}
+
+@media (max-width: 620px) {
+  .page-content,
+  .page-content.without-help {
+    padding: 12px 8px 22px;
+  }
+}
+
+@media (max-width: 420px) {
+  .page-content,
+  .page-content.without-help {
+    padding-inline: 6px;
+  }
+}
+
+/* Ultra-wide desktop: grow the working area moderately while keeping sensible
+   line lengths. This avoids the 1920 design looking tiny on 2K/4K monitors. */
+@media (min-width: 2200px) {
+  .page-content {
+    grid-template-columns: 280px minmax(0, 1504px);
+    gap: 28px;
+    padding-inline: clamp(64px, 5vw, 120px);
+  }
+
+  .form-zone {
+    max-width: 1504px;
+  }
+
+  .registration-card,
+  .registration-card--identification,
+  .registration-card--contact,
+  .registration-card--photo {
+    width: 100%;
+    max-width: 1400px;
+    min-width: 0;
+    height: auto;
+    flex: 1 1 auto;
+  }
+
+  .registration-card--identification .card-content,
+  .registration-card--contact .card-content,
+  .registration-card--photo .card-content,
+  .registration-card--identification .form-body,
+  .registration-card--contact .form-body,
+  .registration-card--photo .form-body {
+    width: 100%;
+    max-width: none;
+    height: auto;
+    min-height: 0;
+  }
+
+  .registration-card--photo .form-heading,
+  .registration-card--contact .form-heading {
+    height: auto;
+  }
+
+  .registration-card--photo .form-heading > div:first-child,
+  .registration-card--photo .title-line,
+  .registration-card--photo .title-line h3,
+  .registration-card--photo .form-heading p {
+    width: auto;
+    max-width: 100%;
+    flex-basis: auto;
+  }
+
+  .registration-card--photo .photo-validity {
+    position: static;
+    width: auto;
+    height: 31px;
+    padding: 0 14px;
+  }
+}

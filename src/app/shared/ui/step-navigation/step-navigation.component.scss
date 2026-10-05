@@ -146,3 +146,24 @@
   .step-copy strong { font-size: 10.5px; }
   .step-copy small { font-size: 8.8px; }
 }
+
+@media (min-width: 1181px) and (max-width: 1499px) {
+  .step {
+    gap: 8px;
+    padding-inline: 10px;
+  }
+
+  .step-icon {
+    width: 28px;
+    height: 28px;
+    flex-basis: 28px;
+  }
+
+  .step-copy strong {
+    font-size: clamp(10px, .84vw, 12px);
+  }
+
+  .step-copy small {
+    font-size: 9px;
+  }
+}

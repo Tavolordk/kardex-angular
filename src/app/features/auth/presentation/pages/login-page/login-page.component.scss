@@ -11,7 +11,9 @@
   width: 100%;
   min-width: 320px;
   min-height: 100dvh;
-  overflow: hidden;
+  height: auto;
+  padding-top: 12px;
+  overflow: visible;
   color: #fff;
   background: #07162b;
 }
@@ -58,11 +60,17 @@
 }
 
 .login-shell:not(.is-verification) .login-content {
-  top: 12px;
+  top: 0;
+  margin-top: 0;
+}
+
+.login-shell.is-verification {
+  padding-top: 82px;
 }
 
 .login-shell.is-verification .login-content {
-  top: 82px;
+  top: 0;
+  margin-top: 0;
   height: 840px;
   padding-top: 0;
 }
@@ -1012,7 +1020,7 @@
 @media (min-width: 681px) and (max-height: 1023px) {
   .login-shell {
     min-height: 100dvh;
-    overflow: hidden;
+    overflow: visible;
   }
   .login-content,
   .login-footer {
@@ -1024,7 +1032,9 @@
   .login-shell,
   .login-shell.is-verification {
     min-height: 100dvh;
-    overflow-y: auto;
+    height: auto;
+    padding-top: 0;
+    overflow: visible;
   }
 
   .login-backdrop {
@@ -1036,6 +1046,7 @@
   .login-shell:not(.is-verification) .login-content,
   .login-shell.is-verification .login-content {
     top: 0;
+    margin-top: 0;
     width: min(100% - 24px, 520px);
     height: auto;
     min-height: 100dvh;
@@ -1265,4 +1276,188 @@
 .captcha-refresh:disabled {
   cursor: wait;
   opacity: .58;
+}
+
+/* ==========================================================================
+   Responsive desktop pass - 2026-10-05
+   The 1920px Figma remains the reference. Desktop/laptop widths now interpolate
+   instead of forcing the same 620px card at every resolution.\n   ========================================================================== */
+@media (min-width: 681px) {
+  .login-content,
+  .login-brand {
+    width: clamp(560px, 35.42vw, 760px);
+  }
+
+  .brand-image-wrap {
+    left: 50%;
+    width: min(474px, calc(100% - 86px));
+    transform: translateX(-50%);
+  }
+
+  .brand-image-wrap img {
+    left: 50%;
+    width: min(458px, calc(100% - 16px));
+    transform: translateX(-50%);
+  }
+
+  .brand-title {
+    left: 0;
+    width: 100%;
+  }
+
+  .title-separator {
+    left: 50%;
+    width: min(310px, 52%);
+    transform: translateX(-50%);
+  }
+
+  .title-separator::before {
+    width: 100%;
+  }
+
+  .title-separator span {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .login-card {
+    left: 50%;
+    width: calc(100% - 60px);
+    max-width: 700px;
+    transform: translateX(-50%);
+  }
+
+  .card-heading,
+  .steps-margin,
+  .steps,
+  .credentials-form,
+  .verification-form,
+  .field-group,
+  .field-group > label,
+  .verification-method,
+  .verification-method legend,
+  .method-options,
+  .captcha-row,
+  .field-shell,
+  .continue-button,
+  .verification-notice,
+  .otp-grid,
+  .verification-copy,
+  .timer-row,
+  .resend-row {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .card-heading p,
+  .verification-card .card-heading p {
+    width: min(515px, 94%);
+  }
+
+  .steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .steps li {
+    width: 100%;
+  }
+
+  .step-label {
+    width: calc(100% - 58px);
+  }
+
+  .method-options {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .captcha-row {
+    grid-template-columns: minmax(0, 1fr) 66px;
+  }
+
+  .captcha-code {
+    width: 100%;
+  }
+
+  .continue-button span {
+    width: calc(100% - 22px);
+  }
+
+  .continue-button img {
+    left: auto;
+    right: 18px;
+  }
+
+  .form-error {
+    width: calc(100% - 70px);
+  }
+
+  .notice-copy,
+  .notice-copy strong,
+  .notice-copy span {
+    width: 100%;
+  }
+
+  .notice-copy {
+    min-width: 0;
+  }
+
+  .otp-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .otp-grid input {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+@media (min-width: 681px) and (max-width: 1450px) {
+  .login-card {
+    padding-inline: clamp(24px, 2.4vw, 35px);
+  }
+
+  .brand-title h1 {
+    font-size: clamp(36px, 3vw, 42px);
+  }
+
+  .card-heading h2 {
+    font-size: clamp(22px, 1.8vw, 26px);
+  }
+
+  .method-option {
+    padding-inline: 8px;
+  }
+}
+
+/* Short laptop displays should scroll vertically rather than crop or shrink the
+   form to an unreadable size. The fixed footer remains visible. */
+@media (min-width: 681px) and (max-height: 900px) {
+  .login-shell,
+  .login-shell.is-verification {
+    overflow: visible;
+  }
+
+  .login-content {
+    min-height: 980px;
+  }
+
+  .login-shell.is-verification .login-content {
+    min-height: 900px;
+  }
+}
+
+/* Larger-than-Figma desktops get a modest, capped enlargement. */
+@media (min-width: 2200px) {
+  .login-content,
+  .login-brand {
+    width: 760px;
+  }
+
+  .brand-title h1 {
+    font-size: 48px;
+  }
+
+  .login-card {
+    width: 700px;
+  }
 }

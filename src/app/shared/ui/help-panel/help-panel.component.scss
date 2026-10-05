@@ -174,3 +174,20 @@ li p,
   .help-panel { grid-template-columns: 1fr; }
   .glass-card { border-radius: 18px; }
 }
+
+@media (min-width: 1181px) and (max-width: 1919px) {
+  .help-panel {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .glass-card {
+    padding: clamp(14px, 1.15vw, 18px);
+  }
+}
+
+@media (min-width: 2200px) {
+  .help-panel {
+    width: 280px;
+  }
+}

@@ -177,3 +177,14 @@ nav {
     touch-action: manipulation;
   }
 }
+
+@media (min-width: 901px) and (max-width: 1499px) {
+  .sidebar {
+    width: clamp(210px, 16vw, 230px);
+    flex-basis: clamp(210px, 16vw, 230px);
+  }
+
+  .menu-copy strong {
+    font-size: clamp(12px, 1vw, 13.5px);
+  }
+}

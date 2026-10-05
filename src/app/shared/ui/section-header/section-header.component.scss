@@ -113,3 +113,20 @@ p {
 
   h2 { font-size: 16.5px; }
 }
+
+@media (min-width: 901px) and (max-width: 1499px) {
+  .section-header {
+    min-height: clamp(68px, 5vw, 77px);
+    padding: 12px clamp(18px, 2vw, 30px);
+  }
+
+  .section-icon {
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
+  }
+
+  h2 {
+    font-size: clamp(19px, 1.5vw, 21.4px);
+  }
+}

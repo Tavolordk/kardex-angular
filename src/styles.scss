@@ -10,13 +10,24 @@
 
 * { box-sizing: border-box; }
 html, body { min-height: 100%; margin: 0; }
-html { overflow-x: hidden; }
+
+/*
+ * Single document scrollbar.
+ * Keep scrolling ownership on the root element only. Setting overflow-x:hidden
+ * on body makes its computed overflow-y scrollable in browsers, which produced
+ * the second vertical scrollbar on the login page.
+ */
+html {
+  overflow-x: clip;
+  overflow-y: auto;
+}
+
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: geometricPrecision;
   min-width: 320px;
-  overflow-x: hidden;
+  overflow: visible;
   background: #fafafa;
   color: #1b222b;
   font-family: var(--font-body);

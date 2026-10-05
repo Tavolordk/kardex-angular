@@ -115,3 +115,37 @@
   .vulnerability-chip { flex-basis: 100%; }
   .document-input strong { max-width: 150px; overflow: hidden; text-overflow: ellipsis; }
 }
+
+/* Unlock the Figma-only fixed height on laptop desktops. */
+@media (min-width: 1181px) and (max-width: 1919px) {
+  .identification-grid {
+    height: auto;
+    grid-template-rows: auto;
+  }
+}
+
+@media (min-width: 1181px) and (max-width: 1499px) {
+  .identification-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .vulnerability-field,
+  .license-document {
+    grid-column: 1 / -1;
+  }
+
+  .vulnerability-grid {
+    width: 100%;
+  }
+}
+
+@media (min-width: 2200px) {
+  .identification-grid {
+    height: auto;
+    grid-template-rows: auto;
+  }
+
+  .vulnerability-grid {
+    width: 100%;
+  }
+}
