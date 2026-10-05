@@ -37,7 +37,7 @@
 
       @if (step() === 'credentials') {
         <form class="credentials-form" [formGroup]="credentialsForm" (ngSubmit)="submitCredentials()" novalidate>
-          @if (currentChannel() === 'email') {
+          <div class="credentials-identity-row">
             <div class="field-group">
               <label for="email">Correo electrónico</label>
               <div class="field-shell" [class.invalid]="credentialsForm.controls.email.touched && credentialsForm.controls.email.invalid">
@@ -45,7 +45,6 @@
                 <input id="email" type="email" formControlName="email" autocomplete="username" placeholder="Ingresa tu correo electrónico" />
               </div>
             </div>
-          } @else {
             <div class="field-group">
               <label for="phone">Número de celular</label>
               <div class="field-shell" [class.invalid]="credentialsForm.controls.phone.touched && credentialsForm.controls.phone.invalid">
@@ -53,7 +52,7 @@
                 <input id="phone" type="tel" inputmode="numeric" maxlength="10" formControlName="phone" autocomplete="tel" placeholder="5567890678" />
               </div>
             </div>
-          }
+          </div>
 
           <fieldset class="verification-method">
             <legend>Medio de verificación</legend>

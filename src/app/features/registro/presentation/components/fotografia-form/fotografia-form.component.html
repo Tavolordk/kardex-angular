@@ -1,30 +1,54 @@
 <div class="photo-form" [formGroup]="form()">
-  <div class="photo-top">
-    <div class="upload-zone">
-      <div class="preview">
-        @if (photoUrl()) {
-          <img class="photo" [src]="photoUrl()" alt="Fotografía seleccionada" />
-        } @else {
-          <img class="silhouette" [src]="assets.icons.userRound" alt="" />
-        }
-      </div>
-      <div class="upload-actions">
-        <label class="upload-button"><img [src]="assets.icons.save" alt="" /><span>Subir fotografía</span><input type="file" accept="image/png,image/jpeg" (change)="onFile($event)" /></label>
-        <button type="button" class="delete" (click)="photoRemoved.emit()" [disabled]="!photoUrl()">Eliminar</button>
-        @if (photoName()) { <small class="filename">{{photoName()}}</small> }
-        @if (photoError()) { <small class="file-error">{{photoError()}}</small> }
-        <div class="requirements"><strong>Requisitos tipo pasaporte:</strong><ul><li>Reciente a color, fondo blanco</li><li>Rostro descubierto, de frente</li><li>Sin lentes, gorra ni accesorios</li><li>Formato JPG/PNG, máx 2 MB</li></ul></div>
-      </div>
+  <div class="photo-grid">
+    <div class="photo-preview-box" [class.has-photo]="!!photoUrl()">
+      @if (photoUrl()) {
+        <img class="photo" [src]="photoUrl()" alt="Fotografía seleccionada" />
+      } @else {
+        <img class="silhouette" [src]="assets.icons.userRound" alt="" />
+      }
     </div>
-    <div class="photo-data">
-      <label class="data-field required"><span>Fecha de toma</span><input type="date" formControlName="fechaToma" /></label>
-      <label class="data-field required"><span>Vigencia</span><input formControlName="vigenciaFotografia" readonly /></label>
-      <div class="data-field"><span>Estado de vigencia</span><div class="valid"><img [src]="assets.icons.statusDot" alt="" />Vigente</div></div>
-      <label class="data-field required"><span>Origen de captura</span><select formControlName="origenCaptura"><option>Expediente de ingreso</option><option>Actualización de expediente</option><option>Captura institucional</option></select></label>
+
+    <div class="photo-upload-column">
+      <label class="photo-picker">
+        <img [src]="assets.icons.save" alt="" />
+        <span>{{ photoName() ? 'Cambiar fotografía' : 'Subir fotografía' }}</span>
+        <i aria-hidden="true"></i>
+        <input type="file" accept="image/png,image/jpeg" (change)="onFile($event)" />
+      </label>
+
+      <div class="requirements">
+        <strong>Requisitos:</strong>
+        <ul>
+          <li>Reciente (último año)</li>
+          <li>A color</li>
+          <li>Fondo blanco</li>
+          <li>Rostro descubierto, de frente</li>
+          <li>Sin lentes, gorra ni accesorios</li>
+          <li>Formato JPG/PNG, máx 2 MB</li>
+        </ul>
+      </div>
+
+      @if (photoName() || photoError()) {
+        <div class="photo-feedback-row">
+          @if (photoName()) {
+            <small class="filename" title="{{ photoName() }}">{{ photoName() }}</small>
+            <button type="button" class="delete" (click)="photoRemoved.emit()">Eliminar</button>
+          }
+          @if (photoError()) {
+            <small class="file-error">{{ photoError() }}</small>
+          }
+        </div>
+      }
     </div>
   </div>
+
   <div class="biometric-row">
-    <div class="data-field required"><span>Cuenta con registro biométrico</span><div class="segmented"><button type="button" [class.selected]="form().get('biometrico')?.value==='si'" (click)="form().get('biometrico')?.setValue('si')">Sí</button><button type="button" [class.selected]="form().get('biometrico')?.value==='no'" (click)="form().get('biometrico')?.setValue('no')">No</button></div></div>
-    <div class="biometric-note"><strong>Registro biométrico</strong><span>Indica si la fotografía está asociada a biométricos del elemento. El identificador técnico se administrará desde la integración del backend.</span></div>
+    <div class="biometric-field">
+      <span>Cuenta con registro biométrico</span>
+      <div class="segmented" role="group" aria-label="Cuenta con registro biométrico">
+        <button type="button" [class.selected]="form().get('biometrico')?.value === 'si'" (click)="form().get('biometrico')?.setValue('si')">Sí</button>
+        <button type="button" [class.selected]="form().get('biometrico')?.value === 'no'" (click)="form().get('biometrico')?.setValue('no')">No</button>
+      </div>
+    </div>
   </div>
 </div>

@@ -8,7 +8,7 @@
   flex: 0 0 240px;
   align-self: stretch;
   min-height: 100%;
-  background: linear-gradient(180deg, rgba(27,34,43,.84), rgba(12,16,22,.8));
+  background: linear-gradient(180deg, rgba(27,34,43,.78) 0%, rgba(29,36,44,.74) 50%, rgba(12,16,22,.76) 100%);
   border-right: 1px solid rgba(255,255,255,.07);
   box-shadow: 6px 0 32px rgba(0,0,0,.22);
   backdrop-filter: blur(14px);
@@ -26,7 +26,7 @@
 }
 
 .sidebar-title span {
-  color: rgba(255,255,255,.28);
+  color: rgba(255,255,255,.22);
   font: 800 9px var(--font-heading);
   letter-spacing: 1.6px;
 }
@@ -40,6 +40,7 @@
   border-radius: 10px;
   border: 1px solid rgba(255,255,255,.1);
   background: rgba(255,255,255,.06);
+  box-shadow: 0 2px 8px rgba(0,0,0,.15);
   cursor: pointer;
 }
 
@@ -107,7 +108,7 @@ nav {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font: 700 14px/16px var(--font-heading);
+  font: 700 14.1px/16.33px var(--font-heading);
 }
 
 .menu-copy small {
@@ -116,7 +117,7 @@ nav {
   text-overflow: ellipsis;
   white-space: nowrap;
   color: rgba(255,255,255,.27);
-  font: 500 10px/12px var(--font-body);
+  font: 500 10.1px/12px var(--font-body);
 }
 
 .active .menu-copy small { color: rgba(255,255,255,.42); }

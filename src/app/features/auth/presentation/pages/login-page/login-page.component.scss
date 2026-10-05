@@ -1193,3 +1193,51 @@
   .login-footer { gap: 8px; }
   .developer-chip { width: 166px; }
 }
+
+/* Desktop viewport footer fix (2026-10-05)
+ * Keep the larger Figma-sized login card while ensuring the two informational
+ * chips are always fully visible on shorter desktop screens. */
+@media (min-width: 681px) {
+  .login-footer {
+    position: fixed;
+    top: auto;
+    bottom: 14px;
+    left: 40px;
+    right: 40px;
+    height: 44px;
+    z-index: 5;
+  }
+
+  .login-footer span {
+    height: 42px;
+  }
+}
+
+/* Backend contract adaptation without changing the Figma composition:
+   correo and celular are both required, stacked vertically. */
+.credentials-identity-row {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.credentials-identity-row .field-group,
+.credentials-identity-row .field-group > label,
+.credentials-identity-row .field-shell {
+  width: 100%;
+}
+
+.credentials-identity-row .field-shell input {
+  width: calc(100% - 58px);
+}
+
+@media (min-width: 681px) {
+  .credentials-form {
+    row-gap: 14px;
+  }
+
+  .credentials-identity-row .field-shell input {
+    font-size: inherit;
+  }
+}

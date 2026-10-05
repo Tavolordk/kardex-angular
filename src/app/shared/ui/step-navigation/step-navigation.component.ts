@@ -9,4 +9,7 @@ export class StepNavigationComponent {
   readonly completed=input.required<Record<RegistroStepKey, boolean>>();
   readonly changed=output<RegistroStepKey>();
   status(step: RegistroStep): string { if(step.key===this.active()) return 'En captura'; return this.completed()[step.key] ? 'Capturado':'Disponible'; }
+  displayTitle(step: RegistroStep): string {
+    return this.active() === 'fotografia' && step.key === 'contacto' ? 'Domicilio' : step.title;
+  }
 }

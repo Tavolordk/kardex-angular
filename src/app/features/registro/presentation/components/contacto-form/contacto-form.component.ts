@@ -23,6 +23,25 @@ export class ContactoFormComponent {
     parentesco: ['', Validators.required]
   });
 
+
+  registeredCount(): number {
+    const phone = String(this.form().get('telefono')?.value ?? '').trim();
+    const email = String(this.form().get('correo')?.value ?? '').trim();
+    return phone || email ? 1 : 0;
+  }
+
+  focusPrimaryContact(): void {
+    if (typeof document === 'undefined') return;
+    const input = document.querySelector<HTMLInputElement>('app-contacto-form input[formcontrolname="telefono"]');
+    input?.focus();
+  }
+
+  clearPrimaryContact(): void {
+    this.form().patchValue({ telefono: '', correo: '' });
+    this.form().get('telefono')?.markAsDirty();
+    this.form().get('correo')?.markAsDirty();
+  }
+
   contacts(): EmergencyContact[] {
     return (this.form().get('contactosEmergencia')?.value as EmergencyContact[] | null) ?? [];
   }

@@ -2,7 +2,7 @@
   @for(step of steps(); track step.key){
     <button type="button" class="step" [class.active]="step.key===active()" [class.complete]="completed()[step.key]" (click)="changed.emit(step.key)">
       <span class="step-icon"><img [src]="step.icon" alt="" /></span>
-      <span class="step-copy"><strong>{{step.title}}</strong><small>{{status(step)}}</small></span>
+      <span class="step-copy"><strong>{{displayTitle(step)}}</strong><small>{{status(step)}}</small></span>
     </button>
   }
 </nav>

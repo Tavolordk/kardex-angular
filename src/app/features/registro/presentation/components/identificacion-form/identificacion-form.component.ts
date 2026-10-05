@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, input, signal } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { ASSETS } from '../../../../../core/constants/assets';
 
 @Component({
   selector: 'app-identificacion-form',
@@ -12,15 +13,13 @@ import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 export class IdentificacionFormComponent {
   readonly form = input.required<FormGroup>();
   readonly licenseError = signal('');
+  readonly assets = ASSETS;
 
   readonly vulnerableGroups = [
-    'Ninguno',
+    'Pueblo o comunidad indígena',
+    'Persona afrodescendiente o afromexicana',
     'Persona con discapacidad',
-    'Persona indígena',
-    'Persona afromexicana',
-    'Persona adulta mayor',
-    'Persona de la diversidad sexual',
-    'Otro'
+    'Comunidad LGBTIQ+'
   ];
 
   hasVulnerableGroup(group: string): boolean {
@@ -31,25 +30,9 @@ export class IdentificacionFormComponent {
   toggleVulnerableGroup(group: string, checked: boolean): void {
     const control = this.form().get('gruposVulnerables');
     const current = [...((control?.value as string[] | null) ?? [])];
-
-    let next = checked ? [...new Set([...current, group])] : current.filter(item => item !== group);
-    if (group === 'Ninguno' && checked) next = ['Ninguno'];
-    if (group !== 'Ninguno' && checked) next = next.filter(item => item !== 'Ninguno');
-
+    const next = checked ? [...new Set([...current, group])] : current.filter(item => item !== group);
     control?.setValue(next);
     control?.markAsDirty();
-  }
-
-  onLicenseModeChange(value: 'si' | 'no'): void {
-    this.form().get('licenciaConducir')?.setValue(value);
-    if (value === 'no') {
-      this.form().patchValue({
-        numeroLicencia: '',
-        documentoLicenciaNombre: '',
-        documentoLicenciaDataUrl: ''
-      });
-      this.licenseError.set('');
-    }
   }
 
   onLicenseFile(event: Event): void {
@@ -64,8 +47,8 @@ export class IdentificacionFormComponent {
       this.licenseError.set('El documento debe ser PDF, JPG o PNG.');
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
-      this.licenseError.set('El documento debe pesar máximo 5 MB.');
+    if (file.size > 2 * 1024 * 1024) {
+      this.licenseError.set('El documento debe pesar máximo 2 MB.');
       return;
     }
 
@@ -75,10 +58,5 @@ export class IdentificacionFormComponent {
       documentoLicenciaDataUrl: String(reader.result ?? '')
     });
     reader.readAsDataURL(file);
-  }
-
-  removeLicenseFile(): void {
-    this.form().patchValue({ documentoLicenciaNombre: '', documentoLicenciaDataUrl: '' });
-    this.licenseError.set('');
   }
 }

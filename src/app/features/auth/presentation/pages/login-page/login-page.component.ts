@@ -92,8 +92,8 @@ export class LoginPageComponent {
 
     const value = this.credentialsForm.getRawValue();
     const credentials: AccessCredentials = {
-      email: value.channel === 'email' ? value.email : '',
-      phone: value.channel === 'email' ? '' : value.phone,
+      email: value.email,
+      phone: value.phone,
       channel: value.channel
     };
 
@@ -164,22 +164,11 @@ export class LoginPageComponent {
     this.applyChannelRules(channel);
   }
 
-  private applyChannelRules(channel: VerificationChannel): void {
+  private applyChannelRules(_channel: VerificationChannel): void {
     const emailControl = this.credentialsForm.controls.email;
     const phoneControl = this.credentialsForm.controls.phone;
-
-    if (channel === 'email') {
-      emailControl.setValidators([Validators.required, Validators.email]);
-      phoneControl.clearValidators();
-      phoneControl.setValue('');
-      phoneControl.setErrors(null);
-    } else {
-      phoneControl.setValidators([Validators.required, Validators.pattern(/^\d{10}$/)]);
-      emailControl.clearValidators();
-      emailControl.setValue('');
-      emailControl.setErrors(null);
-    }
-
+    emailControl.setValidators([Validators.required, Validators.email]);
+    phoneControl.setValidators([Validators.required, Validators.pattern(/^\d{10}$/)]);
     emailControl.updateValueAndValidity({ emitEvent: false });
     phoneControl.updateValueAndValidity({ emitEvent: false });
   }

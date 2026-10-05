@@ -47,7 +47,10 @@
           </button>
 
           <div class="registration-stack">
-            <article class="registration-card">
+            <article class="registration-card"
+              [class.registration-card--identification]="facade.activeStep() === 'identificacion'"
+              [class.registration-card--contact]="facade.activeStep() === 'contacto'"
+              [class.registration-card--photo]="facade.activeStep() === 'fotografia'">
               <app-step-navigation
                 [steps]="steps"
                 [active]="facade.activeStep()"
@@ -59,12 +62,15 @@
                 <header class="form-heading">
                   <div>
                     <div class="title-line">
-                      <h3>{{ activeMeta().title }}</h3>
-                      <span>{{ activeMeta().requiredCount }} REQ.</span>
+                      <h3>{{ activeMeta().formTitle }}</h3>
+                      @if (facade.activeStep() === 'fotografia') {
+                        <span class="photo-validity"><i aria-hidden="true"></i>Vigente</span>
+                      }
+                      @if (activeMeta().requiredCount > 0) { <span class="required-badge">{{ activeMeta().requiredCount }} REQ.</span> }
                     </div>
                     <p>{{ activeMeta().description }}</p>
                   </div>
-                  <b>{{ activeIndex() + 1 }} / 4</b>
+                  <b>{{ facade.activeStep() === 'fotografia' ? '4/ 4' : (activeIndex() + 1) + ' / 4' }}</b>
                 </header>
 
                 <div class="form-body">

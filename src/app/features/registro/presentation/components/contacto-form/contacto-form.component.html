@@ -1,62 +1,105 @@
-<div class="contact-section">
-  <div class="form-grid contact-primary" [formGroup]="form()">
-    <label class="field required"><span>Número de teléfono</span><input formControlName="telefono" inputmode="tel" placeholder="Ej. 55 1234 5678" /></label>
-    <label class="field required"><span>Correo electrónico</span><input type="email" formControlName="correo" placeholder="correo@dominio.gob.mx" /></label>
+<div class="contact-screen" [formGroup]="form()">
+  <div class="contact-top-grid">
+    <label class="field required">
+      <span>Teléfono celular</span>
+      <input formControlName="telefono" inputmode="tel" placeholder="Ej. 55 1234 5678" />
+    </label>
+
+    <label class="field required">
+      <span>Correo electrónico</span>
+      <input type="email" formControlName="correo" placeholder="ejemplo@dominio.com" />
+    </label>
+
+    <div class="add-primary-slot">
+      <button type="button" class="figma-add-button" (click)="focusPrimaryContact()">
+        <span class="plus-icon">+</span>
+        <span>Agregar contacto</span>
+      </button>
+    </div>
   </div>
 
-  <section class="emergency-section">
-    <div class="section-title">
-      <div>
-        <h4>Contactos de emergencia</h4>
-        <p>Agrega una o más personas de referencia para casos de emergencia.</p>
+  <section class="registered-section" aria-label="Contactos registrados">
+    <p class="section-label">Contactos registrados ({{ registeredCount() }})</p>
+    @if (registeredCount() > 0) {
+      <div class="registered-row">
+        <article class="registered-card">
+          <div class="registered-copy">
+            <strong>{{ form().get('telefono')?.value }}</strong>
+            <span>{{ form().get('correo')?.value }}</span>
+          </div>
+        </article>
       </div>
-      <button type="button" class="add-contact" (click)="openNew()"><span>+</span> Agregar contacto</button>
-    </div>
+    }
+  </section>
 
+  <p class="emergency-label">Contacto de emergencia</p>
+
+  <section class="emergency-grid">
     @if (contacts().length) {
-      <div class="contact-cards">
-        @for (contact of contacts(); track contact.id; let i = $index) {
-          <article class="contact-card">
-            <div class="avatar">{{ contact.nombre.charAt(0).toUpperCase() }}</div>
-            <div class="contact-data">
+      @for (contact of contacts(); track contact.id; let i = $index) {
+        @if (i === 0) {
+          <article class="emergency-card">
+            <div class="emergency-avatar" aria-hidden="true">{{ contact.nombre.charAt(0).toUpperCase() }}</div>
+            <div class="emergency-copy">
               <strong>{{ contact.nombre }}</strong>
-              <span>{{ contact.parentesco }}</span>
-              <a [href]="'tel:' + contact.telefono">{{ contact.telefono }}</a>
+              <span>Parentesco: {{ contact.parentesco }}</span>
+              <span>Número: {{ contact.telefono }}</span>
             </div>
-            <div class="card-actions-inline">
-              <button type="button" (click)="openEdit(i)">Editar</button>
-              <button type="button" class="danger" (click)="deleteContact(i)">Eliminar</button>
-            </div>
+            <button type="button" class="edit-hit-area" aria-label="Editar contacto de emergencia" (click)="openEdit(i)"></button>
           </article>
         }
-      </div>
+      }
     } @else {
-      <button type="button" class="empty-state" (click)="openNew()">
-        <span class="empty-icon">+</span>
-        <strong>Aún no hay contactos de emergencia</strong>
-        <small>Selecciona “Agregar contacto” para registrar el primero.</small>
+      <button type="button" class="emergency-card emergency-card--empty" (click)="openNew()">
+        <div class="emergency-avatar" aria-hidden="true">+</div>
+        <div class="emergency-copy">
+          <strong>Contacto de emergencia</strong>
+          <span>Registra nombre, parentesco y teléfono.</span>
+        </div>
       </button>
     }
+
+    <button type="button" class="add-another" (click)="openNew()">
+      <span class="add-another-icon">+</span>
+      <span>Agregar otro</span>
+    </button>
   </section>
 </div>
 
 @if (modalOpen()) {
   <div class="modal-backdrop" (click)="closeModal()">
     <section class="contact-modal" role="dialog" aria-modal="true" aria-labelledby="contact-modal-title" (click)="$event.stopPropagation()">
-      <header>
-        <div><span>CONTACTO DE EMERGENCIA</span><h3 id="contact-modal-title">{{ editingIndex() === null ? 'Agregar contacto' : 'Editar contacto' }}</h3></div>
-        <button type="button" class="close-modal" aria-label="Cerrar" (click)="closeModal()">×</button>
-      </header>
+      <div class="contact-modal__content">
+        <header class="contact-modal__header">
+          <h3 id="contact-modal-title">Contacto de emergencia</h3>
+          <button type="button" class="close-modal" aria-label="Cerrar" (click)="closeModal()">×</button>
+        </header>
 
-      <div class="modal-fields" [formGroup]="contactForm">
-        <label class="field required"><span>Nombre completo</span><input formControlName="nombre" placeholder="Nombre y apellidos" /></label>
-        <label class="field required"><span>Teléfono</span><input formControlName="telefono" inputmode="tel" placeholder="Ej. 55 9876 5432" /></label>
-        <label class="field required"><span>Parentesco</span><select formControlName="parentesco"><option value="">Seleccione...</option><option>Madre</option><option>Padre</option><option>Esposo(a)</option><option>Hermano(a)</option><option>Hijo(a)</option><option>Familiar</option><option>Otro</option></select></label>
+        <div class="modal-fields" [formGroup]="contactForm">
+          <label class="field required">
+            <span>Nombre contacto de emergencia</span>
+            <input formControlName="nombre" placeholder="Nombre completo" />
+          </label>
+          <label class="field required">
+            <span>Teléfono del contacto de emergencia</span>
+            <input formControlName="telefono" inputmode="tel" placeholder="Ej. 55 9876 5432" />
+          </label>
+          <label class="field">
+            <span>Parentesco</span>
+            <select formControlName="parentesco">
+              <option value="">Seleccione...</option>
+              <option>Madre</option><option>Padre</option><option>Esposo(a)</option>
+              <option>Hermano(a)</option><option>Hijo(a)</option><option>Familiar</option>
+              <option>Tía</option><option>Tío</option><option>Otro</option>
+            </select>
+          </label>
+        </div>
       </div>
 
-      <footer>
-        <button type="button" class="secondary" (click)="closeModal()">Cancelar</button>
-        <button type="button" class="primary" (click)="saveContact()">{{ editingIndex() === null ? 'Agregar contacto' : 'Guardar cambios' }}</button>
+      <footer class="contact-modal__actions">
+        <button type="button" class="primary" (click)="saveContact()">
+          {{ editingIndex() === null ? 'Agregar' : 'Guardar' }}
+        </button>
       </footer>
     </section>
   </div>

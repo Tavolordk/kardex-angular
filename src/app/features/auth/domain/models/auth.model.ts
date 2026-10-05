@@ -12,6 +12,7 @@ export interface VerificationChallenge {
   destinationHint: string;
   expiresAt: string;
   ttlSeconds: number;
+  preAuthToken: string;
 }
 
 export interface AuthSession {
@@ -19,5 +20,10 @@ export interface AuthSession {
   displayName: string;
   role: string;
   accessToken: string;
+  refreshToken: string;
+  tokenType: string;
+  expiresIn: number;
   expiresAt: string;
+  sessionExpiresAt: string | null;
+  sid: string | null;
 }

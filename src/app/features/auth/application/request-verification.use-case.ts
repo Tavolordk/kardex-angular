@@ -11,16 +11,12 @@ export class RequestVerificationUseCase {
       channel: credentials.channel
     };
 
-    if (normalized.channel === 'email') {
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized.email)) {
-        throw new Error('Ingresa un correo electrónico válido.');
-      }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized.email)) {
+      throw new Error('Ingresa un correo electrónico válido.');
     }
 
-    if (normalized.channel === 'sms' || normalized.channel === 'telegram') {
-      if (!/^\d{10}$/.test(normalized.phone)) {
-        throw new Error('El número de celular debe contener 10 dígitos.');
-      }
+    if (!/^\d{10}$/.test(normalized.phone)) {
+      throw new Error('El número de celular debe contener 10 dígitos.');
     }
 
     return this.repository.requestVerification(normalized);

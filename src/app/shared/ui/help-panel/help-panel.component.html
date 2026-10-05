@@ -47,7 +47,7 @@
         </div>
       </div>
       <span class="bar big"><i [style.width.%]="general()"></i></span>
-      <p>{{ general() === 100 ? 'Registro listo para finalizar.' : 'Completando el registro inicial.' }}</p>
+      <p>{{ general() === 0 ? 'Comenzando el registro inicial.' : (general() === 100 ? 'Registro listo para finalizar.' : 'Completando el registro inicial.') }}</p>
     </article>
   }
 

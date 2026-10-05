@@ -1,4 +1,4 @@
-const target = process.env.API_PROXY_TARGET || 'http://127.0.0.1:8080';
+const target = process.env.API_PROXY_TARGET || 'http://10.237.3.101:4600';
 
 module.exports = {
   '/api': {

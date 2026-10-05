@@ -6,9 +6,9 @@
 .app-shell {
   min-height: 100vh;
   background:
-    radial-gradient(circle at 50% 50%, rgba(175,183,195,.52), rgba(250,250,250,.72) 46%, rgba(201,204,209,.53) 75%, rgba(151,158,168,.34)),
-    radial-gradient(circle at 12% 8%, rgba(255,255,255,.56), transparent 24%),
-    radial-gradient(circle at 88% 90%, rgba(175,183,195,.34), transparent 26%),
+    radial-gradient(circle at 8% 10%, rgba(114,129,150,.28) 0%, rgba(114,129,150,0) 26.4%),
+    radial-gradient(circle at 92% 14%, rgba(175,183,195,.34) 0%, rgba(175,183,195,0) 28.3%),
+    radial-gradient(circle at 50% 94%, rgba(151,158,168,.24) 0%, rgba(151,158,168,0) 45.3%),
     #fafafa;
 }
 
@@ -26,15 +26,17 @@
 
 .page-content {
   display: grid;
-  grid-template-columns: 260px minmax(0, 1278px);
-  justify-content: center;
+  grid-template-columns: 260px 1278px;
+  justify-content: start;
   align-items: start;
   gap: 22px;
-  padding: 30px clamp(20px, 3vw, 50px) 24px;
+  padding: 30px 40px 24px 80px;
 }
 
 .page-content.without-help {
   grid-template-columns: minmax(0, 1278px);
+  justify-content: center;
+  padding-inline: 50px;
 }
 
 .form-zone {
@@ -55,7 +57,7 @@
   overflow: hidden;
   border: 1px solid rgba(255,255,255,.42);
   border-radius: 32px;
-  background: linear-gradient(160deg,rgba(255,255,255,.78),rgba(255,255,255,.54));
+  background: linear-gradient(155.19deg,rgba(255,255,255,.74),rgba(255,255,255,.54));
   box-shadow: inset 0 1px rgba(255,255,255,.6),0 24px 72px rgba(27,34,43,.14);
   backdrop-filter: blur(11px);
 }
@@ -86,7 +88,7 @@
   letter-spacing: -.5px;
 }
 
-.title-line span,
+.title-line .required-badge,
 .form-heading > b {
   padding: 6px 9px;
   border: 1px solid rgba(114,129,150,.16);
@@ -194,6 +196,19 @@
   display: none;
 }
 
+@media (max-width: 1919px) and (min-width: 1501px) {
+  .page-content {
+    grid-template-columns: 260px minmax(0, 1fr);
+    justify-content: center;
+    padding-inline: 32px;
+  }
+
+  .page-content.without-help {
+    grid-template-columns: minmax(0, 1278px);
+    padding-inline: 32px;
+  }
+}
+
 @media (max-width: 1500px) {
   .page-content {
     grid-template-columns: 240px minmax(0, 1fr);
@@ -202,6 +217,7 @@
 
   .page-content.without-help {
     grid-template-columns: minmax(0, 1fr);
+    padding-inline: 24px;
   }
 
   .form-zone { gap: 6px; }
@@ -385,5 +401,174 @@
     width: 36px;
     height: 36px;
     flex-basis: 36px;
+  }
+}
+
+/* Figma 1:1192 / 1:1299 - Fotografía y biométricos */
+.photo-validity {
+  width: 87px;
+  height: 31px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0;
+  border: 1px solid #a9d08e;
+  border-radius: 12px;
+  background: #e2f0d9;
+  color: #385723;
+  font: 800 12px/normal var(--font-heading);
+  letter-spacing: 0;
+}
+
+.photo-validity i {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 6px;
+  border-radius: 50%;
+  background: #70ad47;
+}
+
+@media (min-width: 1181px) {
+  .registration-card--photo {
+    width: 1174px;
+    min-width: 1174px;
+    height: 575px;
+    flex: 0 0 1174px;
+  }
+
+  .registration-card--photo .card-content {
+    box-sizing: border-box;
+    height: 430px;
+    min-height: 430px;
+    padding: 24px;
+  }
+
+  .registration-card--photo .form-heading {
+    height: 49.97px;
+    margin-bottom: 20px;
+  }
+
+  .registration-card--photo .form-heading > div:first-child {
+    width: 538px;
+  }
+
+  .registration-card--photo .title-line {
+    position: relative;
+    width: 542px;
+    height: 25px;
+    flex-wrap: nowrap;
+    gap: 10px;
+    padding-right: 4px;
+  }
+
+  .registration-card--photo .title-line h3 {
+    width: 471px;
+    flex: 0 0 471px;
+    white-space: nowrap;
+  }
+
+  .registration-card--photo .photo-validity {
+    position: absolute;
+    top: 0;
+    left: 242px;
+    width: auto;
+    height: 31px;
+    padding: 8px 14px;
+    z-index: 1;
+  }
+
+  .registration-card--photo .required-badge {
+    flex: 0 0 57px;
+  }
+
+  .registration-card--photo .form-heading p {
+    width: 538px;
+    max-width: 538px;
+  }
+
+  .registration-card--photo .form-body {
+    width: 1124px;
+    min-height: 276.43px;
+  }
+
+  .registration-card--photo .card-actions {
+    height: 63px;
+    min-height: 63px;
+    align-items: flex-start;
+    padding: 18px 24px 0;
+  }
+
+  .registration-card--photo .save-button {
+    width: 191px;
+    min-width: 191px;
+  }
+}
+
+@media (max-width: 900px) {
+  .registration-card--photo .card-content,
+  .registration-card--photo .form-body {
+    min-height: 0;
+    height: auto;
+    width: auto;
+  }
+}
+
+
+/* Figma 1:611 - Datos personales / Información básica */
+@media (min-width: 1181px) {
+  .registration-card--identification { height: 719px; }
+  .registration-card--identification .card-content { height: 581px; }
+  .registration-card--identification .form-body { min-height: 0; }
+  .registration-card--identification .card-actions {
+    height: 63px;
+    min-height: 63px;
+    align-items: flex-start;
+    padding: 18px 24px 0;
+  }
+  .registration-card--identification .save-button { width: 191px; min-width: 191px; }
+}
+
+/* Figma 88:1161 - Contacto */
+@media (min-width: 1181px) {
+  .registration-card--contact { height: 582px; }
+  .registration-card--contact .card-content {
+    height: 419px;
+    padding: 24px;
+  }
+  .registration-card--contact .form-heading {
+    height: 49.97px;
+    margin-bottom: 14px;
+  }
+  .registration-card--contact .form-body {
+    min-height: 294px;
+  }
+  .registration-card--contact .card-actions {
+    height: 63px;
+    min-height: 63px;
+    align-items: flex-start;
+    padding: 18px 24px 0;
+  }
+  .registration-card--contact .save-button {
+    width: 191px;
+    min-width: 191px;
+  }
+}
+
+/* Figma 111:1808 - Propuesta contacto */
+@media (min-width: 1181px) {
+  .registration-card--contact {
+    width: 1174px;
+    min-width: 1174px;
+    flex: 0 0 1174px;
+  }
+
+  .registration-card--contact .card-content {
+    box-sizing: border-box;
+  }
+
+  .registration-card--contact .form-body {
+    width: 1096px;
+    max-width: 1096px;
   }
 }

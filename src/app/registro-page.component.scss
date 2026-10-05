@@ -1035,3 +1035,95 @@ select {
     display: none;
   }
 }
+
+/* Figma 1:851 — Residencia */
+.form-card.residence-card {
+  height: 495px;
+  min-height: 495px;
+}
+
+.form-card.residence-card .step-tabs {
+  height: 61.74px;
+}
+
+.form-content.residence-content {
+  height: 346px;
+  min-height: 346px;
+  padding: 24px;
+}
+
+.residence-content .form-heading {
+  height: 47.97px;
+  margin-bottom: 20px;
+}
+
+.residence-content .title-row h2 {
+  font-size: 20px;
+  line-height: 23px;
+}
+
+.residence-content .form-heading p {
+  margin-top: 5.97px;
+  line-height: 19px;
+}
+
+.residence-grid {
+  width: 1124px;
+  height: 126px;
+  grid-template-columns: repeat(4, 267.5px);
+  grid-template-rows: repeat(2, 57px);
+  column-gap: 18px;
+  row-gap: 12px;
+}
+
+.residence-grid label {
+  width: 267.5px;
+  height: 57px;
+  gap: 5px;
+}
+
+.residence-grid label > span {
+  height: 14px;
+  line-height: 14px;
+}
+
+.residence-grid input,
+.residence-grid select {
+  width: 267.5px;
+  height: 38px;
+  min-height: 38px;
+}
+
+.form-card.residence-card .form-footer {
+  height: 63px;
+  min-height: 63px;
+  padding: 19px 24px 0;
+  align-items: flex-start;
+}
+
+.form-card.residence-card .draft {
+  width: 191px;
+  height: 44px;
+  min-height: 44px;
+}
+
+@media (max-width: 1450px) {
+  .form-card.residence-card {
+    height: auto;
+    min-height: 495px;
+  }
+  .form-content.residence-content {
+    height: auto;
+  }
+  .residence-grid {
+    width: 100%;
+    height: auto;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: auto;
+  }
+  .residence-grid label,
+  .residence-grid input,
+  .residence-grid select {
+    width: 100%;
+  }
+}

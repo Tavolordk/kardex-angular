@@ -27,6 +27,7 @@ import { ContactoFormComponent } from '../../components/contacto-form/contacto-f
 import { FotografiaFormComponent } from '../../components/fotografia-form/fotografia-form.component';
 
 interface StepPresentation extends RegistroStep {
+  formTitle: string;
   description: string;
 }
 
@@ -74,7 +75,7 @@ export class RegistroPageComponent implements OnInit {
 
   readonly form = this.fb.group({
     curp: ['', [Validators.required, Validators.minLength(18), Validators.maxLength(18)]],
-    cuip: ['', Validators.required],
+    cuip: [''],
     numeroNomina: ['', Validators.required],
     nombres: ['', Validators.required],
     primerApellido: ['', Validators.required],
@@ -116,45 +117,49 @@ export class RegistroPageComponent implements OnInit {
     {
       key: 'identificacion',
       title: 'Identificación básica',
-      requiredCount: 11,
+      formTitle: 'Datos personales',
+      requiredCount: 0,
       icon: ASSETS.icons.identification,
-      description: 'Datos de identidad, claves institucionales y documentación básica del elemento policial.'
+      description: 'Identificación oficial y datos sociodemográficos de la persona servidora pública.'
     },
     {
       key: 'origen',
-      title: 'Origen y residencia',
+      title: 'Residencia',
+      formTitle: 'Residencia',
       requiredCount: 4,
       icon: ASSETS.icons.origin,
-      description: 'Información de residencia y domicilio actual del elemento policial.'
+      description: 'Información del domicilio actual de la persona servidora pública.'
     },
     {
       key: 'contacto',
       title: 'Contacto',
-      requiredCount: 3,
+      formTitle: 'Contacto',
+      requiredCount: 2,
       icon: ASSETS.icons.contact,
-      description: 'Información de contacto y referencia para casos de emergencia.'
+      description: 'Medios de contacto y contacto de emergencia.'
     },
     {
       key: 'fotografia',
-      title: 'Fotografía',
-      requiredCount: 4,
+      title: 'Fotografía y biométricos',
+      formTitle: 'Fotografía y biometricos',
+      requiredCount: 1,
       icon: ASSETS.icons.camera,
-      description: 'Registrar o consultar fotografía actualizada dentro del módulo Datos Personales.'
+      description: 'Fotografía vigente de la persona servidora pública e indicador de su registro biométrico.'
     }
   ];
 
   private readonly requiredByStep: Record<RegistroStepKey, (keyof RegistroDraft)[]> = {
-    identificacion: ['curp', 'cuip', 'numeroNomina', 'nombres', 'primerApellido', 'fechaNacimiento', 'sexo', 'nacionalidad', 'entidadNacimiento', 'municipioNacimiento', 'estadoCivil'],
+    identificacion: ['curp', 'numeroNomina', 'nombres', 'primerApellido', 'fechaNacimiento', 'sexo', 'nacionalidad', 'entidadNacimiento', 'municipioNacimiento', 'estadoCivil'],
     origen: ['entidadResidencia', 'municipioResidencia', 'calle', 'codigoPostal'],
-    contacto: ['telefono', 'correo', 'contactosEmergencia'],
-    fotografia: ['fechaToma', 'vigenciaFotografia', 'origenCaptura', 'photoDataUrl']
+    contacto: ['telefono', 'correo'],
+    fotografia: ['photoDataUrl']
   };
 
   readonly sectionProgress = computed<SectionProgress[]>(() => {
     const value = this.formValue() as RegistroDraft;
     return [
       { key: 'identificacion', label: 'Datos personales', percentage: this.percent(value, this.requiredByStep.identificacion) },
-      { key: 'origen', label: 'Origen y residencia', percentage: this.percent(value, this.requiredByStep.origen) },
+      { key: 'origen', label: 'Residencia', percentage: this.percent(value, this.requiredByStep.origen) },
       { key: 'contacto', label: 'Contacto', percentage: this.percent(value, this.requiredByStep.contacto) },
       { key: 'fotografia', label: 'Fotografía y biométricos', percentage: this.percent(value, this.requiredByStep.fotografia) }
     ];
@@ -253,8 +258,11 @@ export class RegistroPageComponent implements OnInit {
   }
 
   async logout(): Promise<void> {
-    this.signOutUseCase.execute();
-    await this.router.navigate(['/login']);
+    try {
+      await this.signOutUseCase.execute();
+    } finally {
+      await this.router.navigate(['/login']);
+    }
   }
 
   private setHelperPanelVisibility(key: HelperPanelKey, visible: boolean): void {

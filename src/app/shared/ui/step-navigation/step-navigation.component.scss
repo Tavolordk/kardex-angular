@@ -1,6 +1,6 @@
 .step-nav {
   display: grid;
-  grid-template-columns: 1.08fr 1fr 1fr 1.32fr;
+  grid-template-columns: 1fr 1fr 1fr 1.33fr;
   border-bottom: 1px solid rgba(114,129,150,.16);
   background: linear-gradient(180deg,rgba(255,255,255,.58),rgba(255,255,255,.24));
   overflow: hidden;
@@ -9,7 +9,8 @@
 .step {
   position: relative;
   min-width: 0;
-  min-height: 61px;
+  height: 61.74px;
+  min-height: 61.74px;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -24,7 +25,7 @@
 
 .step:last-child { border-right: 0; }
 .step:hover { background: rgba(255,255,255,.34); }
-.step.active { background: rgba(255,255,255,.62); color: #1b222b; }
+.step.active { background: rgba(255,255,255,.58); color: #1b222b; }
 
 .step.active::after {
   content: "";
@@ -77,12 +78,12 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font: 800 12.5px/15px var(--font-heading);
+  font: 800 12.5px/14.98px var(--font-heading);
 }
 
 .step-copy small {
   color: #7e8793;
-  font: 700 10px/12px var(--font-body);
+  font: 700 10.2px/12.29px var(--font-body);
 }
 
 .step.complete:not(.active) strong { color: #1b222b; }
@@ -110,6 +111,7 @@
 
   .step {
     min-width: 155px;
+    height: auto;
     min-height: 58px;
     flex: 1 0 155px;
     scroll-snap-align: start;

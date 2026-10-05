@@ -22,27 +22,27 @@
 
     <main class="main">
       <section class="section-header">
-        <div class="section-title"><div class="section-icon">▣</div><div><h1>{{ activeStep() === 'foto' ? 'Registro' : 'Datos personales' }}</h1><p>Captura inicial de información del personal policial</p></div></div>
+        <div class="section-title"><div class="section-icon">▣</div><div><h1>{{ activeStep() === 'origen' || activeStep() === 'foto' ? 'Registro' : 'Datos personales' }}</h1><p>Captura inicial de información del personal policial</p></div></div>
         <div class="badges"><span>Registro inicial</span><span class="required"><i></i>Campos obligatorios</span></div>
       </section>
 
       <div class="workspace">
         <aside class="help-column">
           <article class="glass-card instructions"><h3><i>▣</i> Instrucciones</h3><ol><li><b>1</b><span>Puede navegar libremente entre secciones; al registrar se validarán los campos obligatorios.</span></li><li><b>2</b><span>Puede guardar su progreso como borrador en cualquier momento.</span></li></ol></article>
-          <article class="glass-card progress"><h3><i>◉</i> Progreso Por Sección</h3><div *ngFor="let s of steps"><div class="progress-label"><span>{{s.key === 'foto' ? 'Fotografía y biométricos' : s.title}}</span><b>{{ activeStep() === s.key ? '25' : (stepIndex() > steps.indexOf(s) ? '100' : '0') }}%</b></div><div class="bar"><span [style.width.%]="activeStep() === s.key ? 25 : (stepIndex() > steps.indexOf(s) ? 100 : 0)"></span></div></div></article>
+          <article class="glass-card progress"><h3><i>◉</i> Progreso Por Sección</h3><div *ngFor="let s of steps"><div class="progress-label"><span>{{ s.key === 'basica' ? 'Datos personales' : s.key === 'origen' ? 'Residencia' : s.key === 'foto' ? 'Fotografía y biométricos' : s.title }}</span><b>{{ activeStep() === s.key ? '25' : (stepIndex() > steps.indexOf(s) ? '100' : '0') }}%</b></div><div class="bar"><span [style.width.%]="activeStep() === s.key ? 25 : (stepIndex() > steps.indexOf(s) ? 100 : 0)"></span></div></div></article>
           <article class="glass-card general"><div><h3>Progreso General</h3><strong>{{ (stepIndex()+1)*25 }}%</strong></div><div class="bar"><span [style.width.%]="(stepIndex()+1)*25"></span></div><p>{{ stepIndex() === 0 ? 'Comenzando el registro inicial.' : 'Avance guardado en el registro.' }}</p></article>
           <article class="glass-card tip"><h3><i>♙</i> Recomendación</h3><p>Capture el nombre y los apellidos exactamente como aparecen en los documentos oficiales.</p></article>
         </aside>
 
         <section class="form-zone">
           <button class="round-nav left" (click)="prev()" [disabled]="stepIndex()===0">‹</button>
-          <article class="form-card">
+          <article class="form-card" [class.residence-card]="activeStep()==='origen'">
             <div class="step-tabs">
-              <button *ngFor="let s of steps; let i=index" (click)="setStep(s.key)" [class.current]="activeStep()===s.key" [class.done]="stepIndex()>i"><i>{{s.icon}}</i><div><b>{{s.title}}</b><span>{{ stepIndex()>i ? 'Capturado' : (activeStep()===s.key ? 'En captura' : 'Disponible') }}</span></div></button>
+              <button *ngFor="let s of steps; let i=index" (click)="setStep(s.key)" [class.current]="activeStep()===s.key" [class.done]="stepIndex()>i"><i>{{s.icon}}</i><div><b>{{ activeStep()==='origen' && s.key==='origen' ? 'Residencia' : activeStep()==='origen' && s.key==='contacto' ? 'Domicilio' : s.title }}</b><span>{{ stepIndex()>i ? 'Capturado' : (activeStep()===s.key ? 'En captura' : 'Disponible') }}</span></div></button>
             </div>
 
-            <div class="form-content" [formGroup]="form">
-              <div class="form-heading"><div><div class="title-row"><h2>{{ currentStep().title }}</h2><span>{{ activeStep()==='basica' ? '9 REQ.' : activeStep()==='origen' ? '4 REQ.' : activeStep()==='contacto' ? '2 REQ.' : '1 REQ.' }}</span></div><p>{{ activeStep()==='foto' ? 'Registrar o consultar fotografía actualizada dentro del módulo Datos Personales.' : 'Información general, contacto y escolaridad inicial del elemento policial.' }}</p></div><em>{{stepIndex()+1}} / 4</em></div>
+            <div class="form-content" [class.residence-content]="activeStep()==='origen'" [formGroup]="form">
+              <div class="form-heading"><div><div class="title-row"><h2>{{ activeStep()==='origen' ? 'Residencia' : currentStep().title }}</h2><span>{{ activeStep()==='basica' ? '9 REQ.' : activeStep()==='origen' ? '4 REQ.' : activeStep()==='contacto' ? '2 REQ.' : '1 REQ.' }}</span></div><p>{{ activeStep()==='origen' ? 'Domicilio vigente de la persona servidora pública.' : activeStep()==='foto' ? 'Registrar o consultar fotografía actualizada dentro del módulo Datos Personales.' : 'Información general, contacto y escolaridad inicial del elemento policial.' }}</p></div><em>{{stepIndex()+1}} / 4</em></div>
 
               <div class="fields-grid" *ngIf="activeStep()==='basica'">
                 <label><span>CURP <i>*</i></span><input formControlName="curp" placeholder="Ej. ABCD000000MDFAAZP0"></label>
@@ -60,7 +60,7 @@
                 <label><span>NÚMERO DE DEPENDIENTES ECONÓMICOS</span><input formControlName="dependientes" placeholder="Ej. Tres"></label>
               </div>
 
-              <div class="fields-grid" *ngIf="activeStep()==='origen'">
+              <div class="fields-grid residence-grid" *ngIf="activeStep()==='origen'">
                 <label><span>ENTIDAD FEDERATIVA RESIDENCIA <i>*</i></span><select formControlName="entidadResidencia"><option value="">Seleccione...</option><option>Guerrero</option></select></label>
                 <label><span>MUNICIPIO DE RESIDENCIA <i>*</i></span><select formControlName="municipioResidencia"><option value="">Seleccione...</option><option>Acapulco de Juárez</option></select></label>
                 <label><span>CALLE <i>*</i></span><input formControlName="calle" placeholder="Ej. Reforma"></label>

@@ -30,6 +30,7 @@ export const ASSETS = {
     sms: '/assets/icons/sms.svg',
     refresh: '/assets/icons/refresh.svg',
     shield: '/assets/icons/shield.svg',
-    arrowRight: '/assets/icons/arrow-right.svg'
+    arrowRight: '/assets/icons/arrow-right.svg',
+    paperclip: '/assets/icons/paperclip.svg'
   }
 } as const;

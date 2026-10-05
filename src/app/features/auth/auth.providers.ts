@@ -4,31 +4,15 @@ import { RequestVerificationUseCase } from './application/request-verification.u
 import { SignOutUseCase } from './application/sign-out.use-case';
 import { VerifyAccessCodeUseCase } from './application/verify-access-code.use-case';
 import { AuthRepository } from './domain/repositories/auth.repository';
-import { LocalStorageAuthRepository } from './infrastructure/local-storage-auth.repository';
+import { HttpAuthRepository } from './infrastructure/http-auth.repository';
 
 export function provideAuth(): EnvironmentProviders {
   return makeEnvironmentProviders([
-    LocalStorageAuthRepository,
-    { provide: AuthRepository, useExisting: LocalStorageAuthRepository },
-    {
-      provide: RequestVerificationUseCase,
-      useFactory: (repository: AuthRepository) => new RequestVerificationUseCase(repository),
-      deps: [AuthRepository]
-    },
-    {
-      provide: VerifyAccessCodeUseCase,
-      useFactory: (repository: AuthRepository) => new VerifyAccessCodeUseCase(repository),
-      deps: [AuthRepository]
-    },
-    {
-      provide: GetCurrentSessionUseCase,
-      useFactory: (repository: AuthRepository) => new GetCurrentSessionUseCase(repository),
-      deps: [AuthRepository]
-    },
-    {
-      provide: SignOutUseCase,
-      useFactory: (repository: AuthRepository) => new SignOutUseCase(repository),
-      deps: [AuthRepository]
-    }
+    HttpAuthRepository,
+    { provide: AuthRepository, useExisting: HttpAuthRepository },
+    { provide: RequestVerificationUseCase, useFactory: (r: AuthRepository) => new RequestVerificationUseCase(r), deps: [AuthRepository] },
+    { provide: VerifyAccessCodeUseCase, useFactory: (r: AuthRepository) => new VerifyAccessCodeUseCase(r), deps: [AuthRepository] },
+    { provide: GetCurrentSessionUseCase, useFactory: (r: AuthRepository) => new GetCurrentSessionUseCase(r), deps: [AuthRepository] },
+    { provide: SignOutUseCase, useFactory: (r: AuthRepository) => new SignOutUseCase(r), deps: [AuthRepository] }
   ]);
 }
