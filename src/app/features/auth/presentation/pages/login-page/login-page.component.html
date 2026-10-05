@@ -76,14 +76,20 @@
           <div class="field-group captcha-group">
             <label for="captcha">Captcha</label>
             <div class="captcha-row">
-              <div class="captcha-code" aria-label="Código captcha">{{ captchaCode() }}</div>
-              <button class="captcha-refresh" type="button" aria-label="Generar otro captcha" (click)="refreshCaptcha()">
+              <div class="captcha-code" aria-label="Código captcha">
+                @if (captchaImage()) {
+                  <img class="captcha-image" [src]="captchaImage()" alt="Captcha" />
+                } @else {
+                  <span class="captcha-status">{{ captchaLoading() ? 'Generando...' : 'No disponible' }}</span>
+                }
+              </div>
+              <button class="captcha-refresh" type="button" aria-label="Generar otro captcha" (click)="refreshCaptcha()" [disabled]="captchaLoading()">
                 <img [src]="assets.icons.refresh" alt="" />
               </button>
             </div>
             <div class="field-shell captcha-input" [class.invalid]="credentialsForm.controls.captcha.touched && credentialsForm.controls.captcha.invalid">
               <span class="field-icon"><img [src]="assets.icons.shield" alt="" /></span>
-              <input id="captcha" type="text" maxlength="6" formControlName="captcha" autocomplete="off" placeholder="Ingresa el código captcha" />
+              <input id="captcha" type="text" maxlength="12" formControlName="captcha" autocomplete="off" placeholder="Ingresa el código captcha" />
             </div>
           </div>
 
@@ -91,7 +97,7 @@
             <p class="form-error" role="alert">{{ errorMessage() }}</p>
           }
 
-          <button class="continue-button" type="submit" [disabled]="busy()">
+          <button class="continue-button" type="submit" [disabled]="busy() || captchaLoading()">
             <span>{{ busy() ? 'Validando...' : 'Continuar' }}</span>
             <img [src]="assets.icons.arrowRight" alt="" />
           </button>
@@ -110,8 +116,9 @@
             @for (controlName of codeControlNames; track controlName; let index = $index) {
               <input
                 #codeInput
-                type="text"
+                type="password"
                 inputmode="numeric"
+                autocomplete="one-time-code"
                 maxlength="1"
                 [formControlName]="controlName"
                 [attr.aria-label]="'Dígito ' + (index + 1)"

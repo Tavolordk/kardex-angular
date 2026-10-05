@@ -1241,3 +1241,28 @@
     font-size: inherit;
   }
 }
+
+.captcha-image {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  user-select: none;
+  pointer-events: none;
+}
+
+.captcha-status {
+  color: #42536a;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-indent: 0;
+}
+
+.captcha-refresh:disabled {
+  cursor: wait;
+  opacity: .58;
+}

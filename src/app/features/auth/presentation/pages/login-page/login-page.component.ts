@@ -6,6 +6,7 @@ import { VerifyAccessCodeUseCase } from '../../../application/verify-access-code
 import { AccessCredentials, VerificationChallenge, VerificationChannel } from '../../../domain/models/auth.model';
 import { ASSETS } from '../../../../../core/constants/assets';
 import { AnimatedWaveBackgroundComponent } from '../../../../../shared/ui/animated-wave-background/animated-wave-background.component';
+import { CaptchaService } from '../../../infrastructure/captcha.service';
 
 type LoginStep = 'credentials' | 'verification';
 type CodeControlName = 'd1' | 'd2' | 'd3' | 'd4' | 'd5' | 'd6';
@@ -28,6 +29,7 @@ export class LoginPageComponent {
   private readonly fb = inject(FormBuilder).nonNullable;
   private readonly requestVerification = inject(RequestVerificationUseCase);
   private readonly verifyAccessCode = inject(VerifyAccessCodeUseCase);
+  private readonly captchaService = inject(CaptchaService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
@@ -38,7 +40,10 @@ export class LoginPageComponent {
 
   readonly assets = ASSETS;
   readonly step = signal<LoginStep>('credentials');
-  readonly captchaCode = signal('7K3F9Q');
+  readonly captchaId = signal('');
+  readonly captchaImage = signal('');
+  readonly captchaToken = signal<string | null>(null);
+  readonly captchaLoading = signal(false);
   readonly challenge = signal<VerificationChallenge | null>(null);
   readonly secondsRemaining = signal(120);
   readonly busy = signal(false);
@@ -55,21 +60,22 @@ export class LoginPageComponent {
     email: ['', [Validators.required, Validators.email]],
     phone: ['', [Validators.required, Validators.pattern(/^\d{10}$/)]],
     channel: this.fb.control<VerificationChannel>('email', Validators.required),
-    captcha: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(6)]]
+    captcha: ['', [Validators.required]]
   });
 
   readonly verificationForm = this.fb.group({
-    d1: ['4', [Validators.required, Validators.pattern(/^\d$/)]],
-    d2: ['8', [Validators.required, Validators.pattern(/^\d$/)]],
-    d3: ['1', [Validators.required, Validators.pattern(/^\d$/)]],
-    d4: ['0', [Validators.required, Validators.pattern(/^\d$/)]],
-    d5: ['2', [Validators.required, Validators.pattern(/^\d$/)]],
-    d6: ['7', [Validators.required, Validators.pattern(/^\d$/)]]
+    d1: ['', [Validators.required, Validators.pattern(/^\d$/)]],
+    d2: ['', [Validators.required, Validators.pattern(/^\d$/)]],
+    d3: ['', [Validators.required, Validators.pattern(/^\d$/)]],
+    d4: ['', [Validators.required, Validators.pattern(/^\d$/)]],
+    d5: ['', [Validators.required, Validators.pattern(/^\d$/)]],
+    d6: ['', [Validators.required, Validators.pattern(/^\d$/)]]
   });
 
   constructor() {
     this.destroyRef.onDestroy(() => this.stopTimer());
     this.applyChannelRules(this.credentialsForm.controls.channel.value);
+    void this.refreshCaptcha();
   }
 
   currentChannel(): VerificationChannel {
@@ -83,10 +89,11 @@ export class LoginPageComponent {
 
     if (this.credentialsForm.invalid) return;
 
-    const captcha = this.credentialsForm.controls.captcha.value.trim().toUpperCase();
-    if (captcha !== this.captchaCode()) {
+    const captchaId = this.captchaId();
+    const captchaAnswer = this.credentialsForm.controls.captcha.value.trim();
+    if (!captchaId || !captchaAnswer) {
       this.credentialsForm.controls.captcha.setErrors({ invalidCaptcha: true });
-      this.errorMessage.set('El código captcha no coincide.');
+      this.errorMessage.set('Captura el código captcha.');
       return;
     }
 
@@ -99,9 +106,19 @@ export class LoginPageComponent {
 
     this.busy.set(true);
     try {
+      const captchaValidation = await this.captchaService.validar(captchaId, captchaAnswer);
+      if (!captchaValidation.ok) {
+        this.credentialsForm.controls.captcha.setErrors({ invalidCaptcha: true });
+        this.errorMessage.set('El código captcha no coincide.');
+        await this.refreshCaptcha(false);
+        return;
+      }
+      this.captchaToken.set(captchaValidation.token);
+
       const challenge = await this.requestVerification.execute(credentials);
       this.lastCredentials = credentials;
       this.challenge.set(challenge);
+      this.verificationForm.reset({ d1: '', d2: '', d3: '', d4: '', d5: '', d6: '' });
       this.step.set('verification');
       this.secondsRemaining.set(challenge.ttlSeconds);
       this.startTimer(challenge.expiresAt);
@@ -143,6 +160,7 @@ export class LoginPageComponent {
     try {
       const challenge = await this.requestVerification.execute(this.lastCredentials);
       this.challenge.set(challenge);
+      this.verificationForm.reset({ d1: '', d2: '', d3: '', d4: '', d5: '', d6: '' });
       this.secondsRemaining.set(challenge.ttlSeconds);
       this.startTimer(challenge.expiresAt);
     } catch (error) {
@@ -152,11 +170,25 @@ export class LoginPageComponent {
     }
   }
 
-  refreshCaptcha(): void {
-    this.captchaCode.set(this.generateCaptcha());
+  async refreshCaptcha(clearError = true): Promise<void> {
+    if (this.captchaLoading()) return;
+    this.captchaLoading.set(true);
+    this.captchaToken.set(null);
     this.credentialsForm.controls.captcha.setValue('');
     this.credentialsForm.controls.captcha.setErrors(null);
-    this.errorMessage.set('');
+    if (clearError) this.errorMessage.set('');
+
+    try {
+      const captcha = await this.captchaService.generar();
+      this.captchaId.set(captcha.id);
+      this.captchaImage.set(captcha.imageSrc);
+    } catch (error) {
+      this.captchaId.set('');
+      this.captchaImage.set('');
+      this.errorMessage.set(this.errorText(error, 'No fue posible generar el captcha.'));
+    } finally {
+      this.captchaLoading.set(false);
+    }
   }
 
   selectChannel(channel: VerificationChannel): void {
@@ -230,17 +262,6 @@ export class LoginPageComponent {
       window.clearInterval(this.timerId);
       this.timerId = null;
     }
-  }
-
-  private generateCaptcha(): string {
-    const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    const values = new Uint32Array(6);
-    if (typeof crypto !== 'undefined' && 'getRandomValues' in crypto) {
-      crypto.getRandomValues(values);
-    } else {
-      values.forEach((_value, index) => values[index] = Math.floor(Math.random() * alphabet.length));
-    }
-    return Array.from(values, value => alphabet[value % alphabet.length]).join('');
   }
 
   private errorText(error: unknown, fallback: string): string {

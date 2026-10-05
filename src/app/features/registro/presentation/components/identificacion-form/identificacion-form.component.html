@@ -6,15 +6,15 @@
 
     <label class="field"><span>Segundo apellido</span><input formControlName="segundoApellido" placeholder="Ej. García" /></label>
     <label class="field required"><span>Fecha de nacimiento</span><input type="date" formControlName="fechaNacimiento" /></label>
-    <label class="field required"><span>Sexo</span><select formControlName="sexo"><option value="">Seleccione...</option><option>Femenino</option><option>Masculino</option><option>Otro</option></select></label>
+    <label class="field required"><span>Sexo</span><select formControlName="sexo"><option value="">Seleccione...</option>@for (item of sexos(); track item.value) { <option [value]="item.value">{{ item.label }}</option> }</select></label>
 
-    <label class="field muted-field"><span>Identidad de género</span><select formControlName="identidadGenero"><option value="">Seleccione...</option><option>Mujer</option><option>Hombre</option><option>No binario</option><option>Prefiero no especificar</option></select></label>
-    <label class="field required"><span>País de nacimiento</span><select formControlName="nacionalidad"><option value="">Seleccione...</option><option>México</option><option>Otro</option></select></label>
+    <label class="field muted-field"><span>Identidad de género</span><select formControlName="identidadGenero"><option value="">Seleccione...</option>@for (item of identidadesGenero(); track item.value) { <option [value]="item.value">{{ item.label }}</option> }</select></label>
+    <label class="field required"><span>País de nacimiento</span><select formControlName="nacionalidad"><option value="">Seleccione...</option>@for (item of paises(); track item.value) { <option [value]="item.value">{{ item.label }}</option> }</select></label>
     <label class="field required muted-field"><span>Entidad federativa de nacimiento</span><select formControlName="entidadNacimiento"><option value="">Seleccione...</option><option>Guerrero</option><option>Ciudad de México</option><option>Estado de México</option><option>Jalisco</option></select></label>
 
     <label class="field required muted-field"><span>Municipio de nacimiento</span><select formControlName="municipioNacimiento"><option value="">Seleccione...</option><option>Acapulco de Juárez</option><option>Chilpancingo de los Bravo</option><option>Atoyac de Álvarez</option></select></label>
     <label class="field"><span>CUIP</span><input formControlName="cuip" maxlength="30" placeholder="CLAVE POLICIAL" /></label>
-    <label class="field required"><span>Estado civil</span><select formControlName="estadoCivil"><option value="">Seleccione...</option><option>Soltero(a)</option><option>Casado(a)</option><option>Divorciado(a)</option><option>Viudo(a)</option></select></label>
+    <label class="field required"><span>Estado civil</span><select formControlName="estadoCivil"><option value="">Seleccione...</option>@for (item of estadosCiviles(); track item.value) { <option [value]="item.value">{{ item.label }}</option> }</select></label>
 
     <label class="field required"><span>Número de nómina</span><input formControlName="numeroNomina" maxlength="30" placeholder="EXPEDIENTE O NÓMINA" /></label>
     <label class="field"><span>Número de dependientes económicos</span><input type="number" min="0" formControlName="dependientes" placeholder="Ej. 3" /></label>
@@ -23,10 +23,10 @@
     <div class="vulnerability-field">
       <div class="vulnerability-label"><strong>Pertenencia a grupos en situación de vulnerabilidad</strong><span>(Puedes seleccionar más de uno)</span></div>
       <div class="vulnerability-grid">
-        @for (group of vulnerableGroups; track group) {
-          <label class="vulnerability-chip" [class.selected]="hasVulnerableGroup(group)">
-            <input type="checkbox" [checked]="hasVulnerableGroup(group)" (change)="toggleVulnerableGroup(group, $any($event.target).checked)" />
-            <span>{{ group }}</span>
+        @for (group of vulnerabilidades(); track group.value) {
+          <label class="vulnerability-chip" [class.selected]="hasVulnerableGroup(group.value)">
+            <input type="checkbox" [checked]="hasVulnerableGroup(group.value)" (change)="toggleVulnerableGroup(group.value, $any($event.target).checked)" />
+            <span>{{ group.label }}</span>
           </label>
         }
       </div>
@@ -44,4 +44,5 @@
       @if (licenseError()) { <small class="error-text">{{ licenseError() }}</small> }
     </div>
   </div>
+  @if (catalogError()) { <small class="error-text">{{ catalogError() }}</small> }
 </div>
