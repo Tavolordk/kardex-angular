@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, QueryList, ViewChildren, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { InputCaseDirective } from '../../../../../shared/directives/input-case.directive';
 import { ActivatedRoute, Router } from '@angular/router';
 import { RequestVerificationUseCase } from '../../../application/request-verification.use-case';
 import { VerifyAccessCodeUseCase } from '../../../application/verify-access-code.use-case';
@@ -20,7 +21,7 @@ interface VerificationOption {
 @Component({
   selector: 'app-login-page',
   standalone: true,
-  imports: [ReactiveFormsModule, AnimatedWaveBackgroundComponent],
+  imports: [ReactiveFormsModule, AnimatedWaveBackgroundComponent, InputCaseDirective],
   templateUrl: './login-page.component.html',
   styleUrl: './login-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -60,7 +61,7 @@ export class LoginPageComponent {
     email: ['', [Validators.required, Validators.email]],
     phone: ['', [Validators.required, Validators.pattern(/^\d{10}$/)]],
     channel: this.fb.control<VerificationChannel>('email', Validators.required),
-    captcha: ['', [Validators.required]]
+    captcha: ['', [Validators.required, Validators.minLength(5), Validators.maxLength(5), Validators.pattern(/^[A-Z0-9]{5}$/)]]
   });
 
   readonly verificationForm = this.fb.group({
@@ -90,16 +91,16 @@ export class LoginPageComponent {
     if (this.credentialsForm.invalid) return;
 
     const captchaId = this.captchaId();
-    const captchaAnswer = this.credentialsForm.controls.captcha.value.trim();
-    if (!captchaId || !captchaAnswer) {
+    const captchaAnswer = this.credentialsForm.controls.captcha.value.trim().toUpperCase();
+    if (!captchaId || !/^[A-Z0-9]{5}$/.test(captchaAnswer)) {
       this.credentialsForm.controls.captcha.setErrors({ invalidCaptcha: true });
-      this.errorMessage.set('Captura el código captcha.');
+      this.errorMessage.set('El captcha debe contener exactamente 5 caracteres alfanuméricos.');
       return;
     }
 
     const value = this.credentialsForm.getRawValue();
     const credentials: AccessCredentials = {
-      email: value.email,
+      email: value.email.trim().toLowerCase(),
       phone: value.phone,
       channel: value.channel
     };

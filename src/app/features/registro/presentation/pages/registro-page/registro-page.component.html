@@ -35,7 +35,7 @@
           />
         }
 
-        <section class="form-zone" [class.form-zone--recruitment]="activeSection() === 'reclutamiento'">
+        <section class="form-zone" [class.form-zone--recruitment]="activeSection() === 'reclutamiento'" [class.form-zone--certification]="activeSection() === 'certificacion'">
           <button
             class="nav-arrow previous"
             type="button"
@@ -102,10 +102,20 @@
                   @if (facade.saveState() === 'error') { <span class="feedback error">{{ facade.error() }}</span> }
                 </footer>
               </article>
-            } @else {
+            } @else if (activeSection() === 'reclutamiento') {
               <article class="registration-card registration-card--recruitment">
                 <app-reclutamiento-historial />
                 <footer class="card-actions recruitment-actions">
+                  <button type="button" class="save-button" [disabled]="facade.isSaving()" (click)="saveDraft()">
+                    <img [src]="assets.icons.save" alt="" />
+                    <span>{{ facade.isSaving() ? 'Guardando...' : 'Guardar borrador' }}</span>
+                  </button>
+                </footer>
+              </article>
+            } @else {
+              <article class="registration-card registration-card--certification">
+                <app-certificacion-historial />
+                <footer class="card-actions certification-actions">
                   <button type="button" class="save-button" [disabled]="facade.isSaving()" (click)="saveDraft()">
                     <img [src]="assets.icons.save" alt="" />
                     <span>{{ facade.isSaving() ? 'Guardando...' : 'Guardar borrador' }}</span>
@@ -120,7 +130,7 @@
           <button
             class="nav-arrow next"
             type="button"
-            [disabled]="activeSection() === 'reclutamiento'"
+            [disabled]="activeSection() === 'certificacion'"
             (click)="next()"
             aria-label="Siguiente sección"
           >

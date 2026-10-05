@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, Component, inject, input, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { InputCaseDirective } from '../../../../../shared/directives/input-case.directive';
 import { EmergencyContact } from '../../../domain/models/registro.model';
 
 @Component({
   selector: 'app-contacto-form',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, InputCaseDirective],
   templateUrl: './contacto-form.component.html',
   styleUrls: ['../form-sections.scss', './contacto-form.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush

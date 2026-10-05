@@ -1,11 +1,11 @@
 <div class="identification-form" [formGroup]="form()">
   <div class="form-grid identification-grid">
-    <label class="field required"><span>CURP</span><input formControlName="curp" maxlength="18" placeholder="Ej. ABCD000000MDFAAZP0" /></label>
-    <label class="field required"><span>Nombre(s)</span><input formControlName="nombres" placeholder="Ej. Juan Carlos" /></label>
-    <label class="field required"><span>Primer apellido</span><input formControlName="primerApellido" placeholder="Ej. Pérez" /></label>
+    <label class="field required"><span>CURP</span><input appInputCase formControlName="curp" maxlength="18" placeholder="Ej. ABCD000000MDFAAZP0" /></label>
+    <label class="field required"><span>Nombre(s)</span><input appInputCase formControlName="nombres" placeholder="Ej. Juan Carlos" /></label>
+    <label class="field required"><span>Primer apellido</span><input appInputCase formControlName="primerApellido" placeholder="Ej. Pérez" /></label>
 
-    <label class="field"><span>Segundo apellido</span><input formControlName="segundoApellido" placeholder="Ej. García" /></label>
-    <label class="field required"><span>Fecha de nacimiento</span><input type="date" formControlName="fechaNacimiento" /></label>
+    <label class="field"><span>Segundo apellido</span><input appInputCase formControlName="segundoApellido" placeholder="Ej. García" /></label>
+    <label class="field required"><span>Fecha de nacimiento</span><input appInputCase type="date" formControlName="fechaNacimiento" /></label>
     <label class="field required"><span>Sexo</span><select formControlName="sexo"><option value="">Seleccione...</option>@for (item of sexos(); track item.value) { <option [value]="item.value">{{ item.label }}</option> }</select></label>
 
     <label class="field muted-field"><span>Identidad de género</span><select formControlName="identidadGenero"><option value="">Seleccione...</option>@for (item of identidadesGenero(); track item.value) { <option [value]="item.value">{{ item.label }}</option> }</select></label>
@@ -13,19 +13,19 @@
     <label class="field required muted-field"><span>Entidad federativa de nacimiento</span><select formControlName="entidadNacimiento"><option value="">Seleccione...</option><option>Guerrero</option><option>Ciudad de México</option><option>Estado de México</option><option>Jalisco</option></select></label>
 
     <label class="field required muted-field"><span>Municipio de nacimiento</span><select formControlName="municipioNacimiento"><option value="">Seleccione...</option><option>Acapulco de Juárez</option><option>Chilpancingo de los Bravo</option><option>Atoyac de Álvarez</option></select></label>
-    <label class="field"><span>CUIP</span><input formControlName="cuip" maxlength="30" placeholder="CLAVE POLICIAL" /></label>
+    <label class="field"><span>CUIP</span><input appInputCase formControlName="cuip" maxlength="30" placeholder="CLAVE POLICIAL" /></label>
     <label class="field required"><span>Estado civil</span><select formControlName="estadoCivil"><option value="">Seleccione...</option>@for (item of estadosCiviles(); track item.value) { <option [value]="item.value">{{ item.label }}</option> }</select></label>
 
-    <label class="field required"><span>Número de nómina</span><input formControlName="numeroNomina" maxlength="30" placeholder="EXPEDIENTE O NÓMINA" /></label>
-    <label class="field"><span>Número de dependientes económicos</span><input type="number" min="0" formControlName="dependientes" placeholder="Ej. 3" /></label>
-    <label class="field"><span>Licencia de conducir</span><input formControlName="numeroLicencia" placeholder="NÚMERO DE LICENCIA" /></label>
+    <label class="field required"><span>Número de nómina</span><input appInputCase formControlName="numeroNomina" maxlength="30" placeholder="EXPEDIENTE O NÓMINA" /></label>
+    <label class="field"><span>Número de dependientes económicos</span><input appInputCase type="number" min="0" formControlName="dependientes" placeholder="Ej. 3" /></label>
+    <label class="field"><span>Licencia de conducir</span><input appInputCase formControlName="numeroLicencia" placeholder="NÚMERO DE LICENCIA" /></label>
 
     <div class="vulnerability-field">
       <div class="vulnerability-label"><strong>Pertenencia a grupos en situación de vulnerabilidad</strong><span>(Puedes seleccionar más de uno)</span></div>
       <div class="vulnerability-grid">
         @for (group of vulnerabilidades(); track group.value) {
           <label class="vulnerability-chip" [class.selected]="hasVulnerableGroup(group.value)">
-            <input type="checkbox" [checked]="hasVulnerableGroup(group.value)" (change)="toggleVulnerableGroup(group.value, $any($event.target).checked)" />
+            <input appInputCase type="checkbox" [checked]="hasVulnerableGroup(group.value)" (change)="toggleVulnerableGroup(group.value, $any($event.target).checked)" />
             <span>{{ group.label }}</span>
           </label>
         }
@@ -39,7 +39,7 @@
         <strong>{{ form().get('documentoLicenciaNombre')?.value || 'Adjuntar archivo...' }}</strong>
         <em>PDF o JPG, máx 2MB</em>
         <b>Examinar</b>
-        <input type="file" accept="application/pdf,image/png,image/jpeg" (change)="onLicenseFile($event)" />
+        <input appInputCase type="file" accept="application/pdf,image/png,image/jpeg" (change)="onLicenseFile($event)" />
       </label>
       @if (licenseError()) { <small class="error-text">{{ licenseError() }}</small> }
     </div>

@@ -172,6 +172,7 @@ p {
   display: grid;
   place-items: center;
   padding: 24px;
+  overflow-y: auto;
   background: rgba(27,34,43,.18);
   backdrop-filter: blur(2px);
 }
@@ -263,11 +264,33 @@ p {
 
 .process-modal__actions .add-process { height: 39px; }
 
+@media (max-height: 520px) {
+  .process-modal-backdrop {
+    place-items: start center;
+  }
+
+  .process-modal {
+    margin: 16px 0;
+  }
+}
+
 @media (max-width: 1180px) {
-  .process-modal { width: min(900px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); overflow: auto; }
+  .process-modal-backdrop {
+    place-items: start center;
+    padding: 16px;
+  }
+
+  .process-modal {
+    width: min(900px, calc(100vw - 32px));
+    min-height: 0;
+    margin: 16px 0;
+    overflow: hidden;
+  }
+
   .process-modal__content { min-height: 0; }
   .process-form { grid-template-columns: repeat(2,minmax(0,1fr)); }
 }
+
 
 @media (max-width: 700px) {
   .process-modal-backdrop { padding: 12px; align-items: start; overflow-y: auto; }

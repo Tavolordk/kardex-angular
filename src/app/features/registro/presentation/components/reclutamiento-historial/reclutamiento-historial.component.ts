@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { InputCaseDirective } from '../../../../../shared/directives/input-case.directive';
 import { CatalogoOption } from '../../../../catalogos/domain/models/catalogo.model';
 import { CatalogosService } from '../../../../catalogos/infrastructure/catalogos.service';
 
@@ -14,7 +15,7 @@ interface RecruitmentProcess {
 @Component({
   selector: 'app-reclutamiento-historial',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, InputCaseDirective],
   templateUrl: './reclutamiento-historial.component.html',
   styleUrl: './reclutamiento-historial.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush

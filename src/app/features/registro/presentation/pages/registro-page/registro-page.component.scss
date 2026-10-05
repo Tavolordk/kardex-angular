@@ -837,3 +837,37 @@
     min-height: 0;
   }
 }
+
+/* Figma 321:1586 - Certificación histórico */
+.registration-card--certification {
+  min-height: 453px;
+}
+
+.registration-card--certification > app-certificacion-historial {
+  display: block;
+  min-height: 372px;
+}
+
+.registration-card--certification .certification-actions {
+  min-height: 81px;
+  padding: 18px 24px;
+  align-items: flex-start;
+}
+
+@media (min-width: 1501px) {
+  .registration-card--certification {
+    width: 1174px;
+    height: 453px;
+  }
+}
+
+@media (max-width: 1500px) {
+  .registration-card--certification {
+    min-height: 0;
+    height: auto;
+  }
+
+  .registration-card--certification > app-certificacion-historial {
+    min-height: 0;
+  }
+}

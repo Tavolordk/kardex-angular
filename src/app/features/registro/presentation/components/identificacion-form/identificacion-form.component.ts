@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, input, signal } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { InputCaseDirective } from '../../../../../shared/directives/input-case.directive';
 import { ASSETS } from '../../../../../core/constants/assets';
 import { CatalogoOption } from '../../../../catalogos/domain/models/catalogo.model';
 import { CatalogosService } from '../../../../catalogos/infrastructure/catalogos.service';
@@ -7,7 +8,7 @@ import { CatalogosService } from '../../../../catalogos/infrastructure/catalogos
 @Component({
   selector: 'app-identificacion-form',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, InputCaseDirective],
   templateUrl: './identificacion-form.component.html',
   styleUrls: ['../form-sections.scss', './identificacion-form.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush

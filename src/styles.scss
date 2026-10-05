@@ -43,3 +43,38 @@ button {
 }
 
 img { max-width: 100%; }
+
+/* Modal overlays rendered inside glass registration cards.
+   backdrop-filter creates a containing block for position:fixed descendants;
+   overflow:hidden then clips them to the card. While an overlay is open,
+   release that clipping so the overlay can use the viewport as intended. */
+.registration-card--recruitment:has(.process-modal-backdrop),
+.registration-card--certification:has(.certification-modal-backdrop),
+.registration-card--certification:has(.details-backdrop) {
+  overflow: visible !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* KARDEX: normalización visual de captura -------------------------------
+   Los valores reales se normalizan con InputCaseDirective. Estas reglas
+   mantienen coherencia visual también en selects y placeholders. */
+app-registro-page input:not([type='email']):not([type='date']):not([type='number']):not([type='tel']):not([type='file']),
+app-registro-page textarea,
+app-registro-page select,
+app-registro-page option {
+  text-transform: uppercase;
+}
+
+app-registro-page input[type='email'] {
+  text-transform: lowercase;
+}
+
+app-login-page input[name='captcha'],
+app-login-page input[formcontrolname='captcha'] {
+  text-transform: uppercase;
+}
+
+app-login-page input[type='email'] {
+  text-transform: lowercase;
+}

@@ -42,20 +42,20 @@
         </header>
 
         <form class="process-form" [formGroup]="processForm">
-          <label class="field required"><span>Folio único del proceso de reclutamiento</span><input formControlName="folio" placeholder="Ej. ABCD000000MDFAAZP0" /></label>
-          <label class="field required"><span>Convocatoria</span><input formControlName="convocatoria" /></label>
-          <label class="field required"><span>Perfil de ingreso</span><input formControlName="perfilIngreso" /></label>
+          <label class="field required"><span>Folio único del proceso de reclutamiento</span><input appInputCase formControlName="folio" placeholder="Ej. ABCD000000MDFAAZP0" /></label>
+          <label class="field required"><span>Convocatoria</span><input appInputCase formControlName="convocatoria" /></label>
+          <label class="field required"><span>Perfil de ingreso</span><input appInputCase formControlName="perfilIngreso" /></label>
 
           <label class="field required"><span>Estrategia de reclutamiento</span><select formControlName="estrategia"><option value="">Seleccione...</option>@for (item of strategies(); track item.value) { <option [value]="item.value">{{ item.label }}</option> }</select></label>
-          <label class="field required"><span>Especifique la estrategia</span><input formControlName="estrategiaDetalle" placeholder="Especifique" /></label>
-          <label class="field required"><span>Fecha de registro al proceso</span><input type="date" formControlName="fechaRegistro" /></label>
+          <label class="field required"><span>Especifique la estrategia</span><input appInputCase formControlName="estrategiaDetalle" placeholder="Especifique" /></label>
+          <label class="field required"><span>Fecha de registro al proceso</span><input appInputCase type="date" formControlName="fechaRegistro" /></label>
 
           <label class="field required"><span>Estatus del proceso de selección</span><select formControlName="estatus"><option value="">Seleccione...</option>@for (item of statuses(); track item.value) { <option [value]="item.value">{{ item.label }}</option> }</select></label>
-          <label class="field"><span>Tiempo del proceso de reclutamiento y selección</span><input formControlName="tiempoProceso" placeholder="45 días" /></label>
+          <label class="field"><span>Tiempo del proceso de reclutamiento y selección</span><input appInputCase formControlName="tiempoProceso" placeholder="45 días" /></label>
           <label class="field required"><span>Resultado del proceso de selección</span><select formControlName="resultado"><option value="">Seleccione...</option>@for (item of results(); track item.value) { <option [value]="item.value">{{ item.label }}</option> }</select></label>
 
           <label class="field required"><span>Causa de no ingreso o no conclusión</span><select formControlName="causaNoIngreso"><option value="">Seleccione...</option>@for (item of noEntryCauses(); track item.value) { <option [value]="item.value">{{ item.label }}</option> }</select></label>
-          <label class="field required"><span>Fecha de resolución de selección</span><input type="date" formControlName="fechaResolucion" /></label>
+          <label class="field required"><span>Fecha de resolución de selección</span><input appInputCase type="date" formControlName="fechaResolucion" /></label>
         </form>
       </div>
 

@@ -42,14 +42,14 @@
               <label for="email">Correo electrónico</label>
               <div class="field-shell" [class.invalid]="credentialsForm.controls.email.touched && credentialsForm.controls.email.invalid">
                 <span class="field-icon"><img [src]="assets.icons.mail" alt="" /></span>
-                <input id="email" type="email" formControlName="email" autocomplete="username" placeholder="Ingresa tu correo electrónico" />
+                <input appInputCase id="email" type="email" formControlName="email" autocomplete="username" placeholder="Ingresa tu correo electrónico" />
               </div>
             </div>
             <div class="field-group">
               <label for="phone">Número de celular</label>
               <div class="field-shell" [class.invalid]="credentialsForm.controls.phone.touched && credentialsForm.controls.phone.invalid">
                 <span class="field-icon"><img [src]="assets.icons.phone" alt="" /></span>
-                <input id="phone" type="tel" inputmode="numeric" maxlength="10" formControlName="phone" autocomplete="tel" placeholder="5567890678" />
+                <input appInputCase id="phone" type="tel" inputmode="numeric" maxlength="10" formControlName="phone" autocomplete="tel" placeholder="5567890678" />
               </div>
             </div>
           </div>
@@ -59,7 +59,7 @@
             <div class="method-options">
               @for (option of verificationOptions; track option.value) {
                 <label class="method-option" [class.selected]="credentialsForm.controls.channel.value === option.value">
-                  <input
+                  <input appInputCase
                     type="radio"
                     name="channel"
                     [value]="option.value"
@@ -89,7 +89,7 @@
             </div>
             <div class="field-shell captcha-input" [class.invalid]="credentialsForm.controls.captcha.touched && credentialsForm.controls.captcha.invalid">
               <span class="field-icon"><img [src]="assets.icons.shield" alt="" /></span>
-              <input id="captcha" type="text" maxlength="12" formControlName="captcha" autocomplete="off" placeholder="Ingresa el código captcha" />
+              <input appInputCase id="captcha" type="text" inputmode="text" minlength="5" maxlength="5" pattern="[A-Za-z0-9]{5}" formControlName="captcha" autocomplete="off" placeholder="Ingresa el código captcha" />
             </div>
           </div>
 
@@ -114,7 +114,7 @@
 
           <div class="otp-grid" aria-label="Código de verificación de seis dígitos">
             @for (controlName of codeControlNames; track controlName; let index = $index) {
-              <input
+              <input appInputCase
                 #codeInput
                 type="password"
                 inputmode="numeric"

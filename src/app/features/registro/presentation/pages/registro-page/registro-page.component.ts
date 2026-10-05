@@ -26,6 +26,7 @@ import { OrigenResidenciaFormComponent } from '../../components/origen-residenci
 import { ContactoFormComponent } from '../../components/contacto-form/contacto-form.component';
 import { FotografiaFormComponent } from '../../components/fotografia-form/fotografia-form.component';
 import { ReclutamientoHistorialComponent } from '../../components/reclutamiento-historial/reclutamiento-historial.component';
+import { CertificacionHistorialComponent } from '../../components/certificacion-historial/certificacion-historial.component';
 
 interface StepPresentation extends RegistroStep {
   formTitle: string;
@@ -54,7 +55,8 @@ const DEFAULT_HELPER_VISIBILITY: HelperPanelVisibility = {
     OrigenResidenciaFormComponent,
     ContactoFormComponent,
     FotografiaFormComponent,
-    ReclutamientoHistorialComponent
+    ReclutamientoHistorialComponent,
+    CertificacionHistorialComponent
   ],
   providers: [RegistroDraftFacade, { provide: RegistroRepository, useClass: LocalStorageRegistroRepository }],
   templateUrl: './registro-page.component.html',
@@ -73,7 +75,7 @@ export class RegistroPageComponent implements OnInit {
   readonly session = this.getSessionUseCase.execute();
   readonly sidebarOpen = signal(typeof window === 'undefined' ? true : window.innerWidth > 900);
   readonly photoError = signal('');
-  readonly activeSection = signal<'datos' | 'reclutamiento'>('datos');
+  readonly activeSection = signal<'datos' | 'reclutamiento' | 'certificacion'>('datos');
   readonly helperVisibility = signal<HelperPanelVisibility>({ ...DEFAULT_HELPER_VISIBILITY });
 
   readonly form = this.fb.group({
@@ -172,25 +174,35 @@ export class RegistroPageComponent implements OnInit {
     Math.round(this.sectionProgress().reduce((sum, item) => sum + item.percentage, 0) / this.sectionProgress().length)
   );
 
-  readonly displayedSectionProgress = computed<SectionProgress[]>(() =>
-    this.activeSection() === 'reclutamiento'
-      ? [{ key: 'reclutamiento', label: 'Reclutamiento y selección', percentage: 0 }]
-      : this.sectionProgress()
-  );
+  readonly displayedSectionProgress = computed<SectionProgress[]>(() => {
+    if (this.activeSection() === 'reclutamiento') {
+      return [{ key: 'reclutamiento', label: 'Reclutamiento y selección', percentage: 0 }];
+    }
+    if (this.activeSection() === 'certificacion') {
+      return [{ key: 'certificacion', label: 'Certificación', percentage: 0 }];
+    }
+    return this.sectionProgress();
+  });
 
   readonly displayedGeneralProgress = computed(() =>
-    this.activeSection() === 'reclutamiento' ? 0 : this.generalProgress()
+    this.activeSection() === 'datos' ? this.generalProgress() : 0
   );
 
-  readonly sectionHeaderTitle = computed(() =>
-    this.activeSection() === 'reclutamiento' ? 'Reclutamiento y selección' : (this.facade.activeStep() === 'fotografia' ? 'Registro' : 'Datos personales')
-  );
+  readonly sectionHeaderTitle = computed(() => {
+    if (this.activeSection() === 'reclutamiento') return 'Reclutamiento y selección';
+    if (this.activeSection() === 'certificacion') return 'Certificación';
+    return this.facade.activeStep() === 'fotografia' ? 'Registro' : 'Datos personales';
+  });
 
-  readonly sectionHeaderSubtitle = computed(() =>
-    this.activeSection() === 'reclutamiento'
-      ? 'Historial, estatus y resolución del trámite de incorporación institucional.'
-      : 'Captura inicial de información del personal policial'
-  );
+  readonly sectionHeaderSubtitle = computed(() => {
+    if (this.activeSection() === 'reclutamiento') {
+      return 'Historial, estatus y resolución del trámite de incorporación institucional.';
+    }
+    if (this.activeSection() === 'certificacion') {
+      return 'Estatus de evaluaciones oficiales, vigencias y competencias laborales.';
+    }
+    return 'Captura inicial de información del personal policial';
+  });
 
   readonly completed = computed<Record<RegistroStepKey, boolean>>(() => ({
     identificacion: this.sectionProgress()[0].percentage === 100,
@@ -228,6 +240,11 @@ export class RegistroPageComponent implements OnInit {
   }
 
   previous(): void {
+    if (this.activeSection() === 'certificacion') {
+      this.activeSection.set('reclutamiento');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
     if (this.activeSection() === 'reclutamiento') {
       this.activeSection.set('datos');
       this.setStep('fotografia');
@@ -238,7 +255,12 @@ export class RegistroPageComponent implements OnInit {
   }
 
   next(): void {
-    if (this.activeSection() === 'reclutamiento') return;
+    if (this.activeSection() === 'certificacion') return;
+    if (this.activeSection() === 'reclutamiento') {
+      this.activeSection.set('certificacion');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
     const index = this.activeIndex();
     if (index < this.steps.length - 1) {
       this.setStep(this.steps[index + 1].key);
@@ -250,6 +272,14 @@ export class RegistroPageComponent implements OnInit {
 
 
   async saveDraft(): Promise<void> {
+    // El correo es la única excepción a la captura en mayúsculas.
+    // Se normaliza nuevamente al persistir para no depender solo de la UI.
+    const correoControl = this.form.controls.correo;
+    const normalizedEmail = correoControl.value.trim().toLowerCase();
+    if (normalizedEmail !== correoControl.value) {
+      correoControl.setValue(normalizedEmail, { emitEvent: false });
+    }
+
     await this.facade.saveDraft(this.form.getRawValue() as RegistroDraft);
   }
 
