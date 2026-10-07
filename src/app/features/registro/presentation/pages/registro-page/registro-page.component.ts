@@ -27,6 +27,7 @@ import { ContactoFormComponent } from '../../components/contacto-form/contacto-f
 import { FotografiaFormComponent } from '../../components/fotografia-form/fotografia-form.component';
 import { ReclutamientoHistorialComponent } from '../../components/reclutamiento-historial/reclutamiento-historial.component';
 import { CertificacionHistorialComponent } from '../../components/certificacion-historial/certificacion-historial.component';
+import { ControlConfianzaHistorialComponent } from '../../components/control-confianza-historial/control-confianza-historial.component';
 
 interface StepPresentation extends RegistroStep {
   formTitle: string;
@@ -56,7 +57,8 @@ const DEFAULT_HELPER_VISIBILITY: HelperPanelVisibility = {
     ContactoFormComponent,
     FotografiaFormComponent,
     ReclutamientoHistorialComponent,
-    CertificacionHistorialComponent
+    CertificacionHistorialComponent,
+    ControlConfianzaHistorialComponent
   ],
   providers: [RegistroDraftFacade, { provide: RegistroRepository, useClass: LocalStorageRegistroRepository }],
   templateUrl: './registro-page.component.html',
@@ -75,7 +77,7 @@ export class RegistroPageComponent implements OnInit {
   readonly session = this.getSessionUseCase.execute();
   readonly sidebarOpen = signal(typeof window === 'undefined' ? true : window.innerWidth > 900);
   readonly photoError = signal('');
-  readonly activeSection = signal<'datos' | 'reclutamiento' | 'certificacion'>('datos');
+  readonly activeSection = signal<'datos' | 'reclutamiento' | 'control-confianza' | 'certificacion-individual'>('datos');
   readonly helperVisibility = signal<HelperPanelVisibility>({ ...DEFAULT_HELPER_VISIBILITY });
 
   readonly form = this.fb.group({
@@ -178,8 +180,11 @@ export class RegistroPageComponent implements OnInit {
     if (this.activeSection() === 'reclutamiento') {
       return [{ key: 'reclutamiento', label: 'Reclutamiento y selección', percentage: 0 }];
     }
-    if (this.activeSection() === 'certificacion') {
-      return [{ key: 'certificacion', label: 'Certificación', percentage: 0 }];
+    if (this.activeSection() === 'control-confianza') {
+      return [{ key: 'control-confianza', label: 'Control de confianza', percentage: 0 }];
+    }
+    if (this.activeSection() === 'certificacion-individual') {
+      return [{ key: 'certificacion-individual', label: 'Certificación individual', percentage: 0 }];
     }
     return this.sectionProgress();
   });
@@ -190,7 +195,8 @@ export class RegistroPageComponent implements OnInit {
 
   readonly sectionHeaderTitle = computed(() => {
     if (this.activeSection() === 'reclutamiento') return 'Reclutamiento y selección';
-    if (this.activeSection() === 'certificacion') return 'Certificación';
+    if (this.activeSection() === 'control-confianza') return 'Control de confianza';
+    if (this.activeSection() === 'certificacion-individual') return 'Certificación individual';
     return this.facade.activeStep() === 'fotografia' ? 'Registro' : 'Datos personales';
   });
 
@@ -198,8 +204,11 @@ export class RegistroPageComponent implements OnInit {
     if (this.activeSection() === 'reclutamiento') {
       return 'Historial, estatus y resolución del trámite de incorporación institucional.';
     }
-    if (this.activeSection() === 'certificacion') {
-      return 'Estatus de evaluaciones oficiales, vigencias y competencias laborales.';
+    if (this.activeSection() === 'control-confianza') {
+      return 'Historial de evaluaciones de control de confianza, resultados y vigencias.';
+    }
+    if (this.activeSection() === 'certificacion-individual') {
+      return 'Historial de certificaciones individuales y competencias acreditadas.';
     }
     return 'Captura inicial de información del personal policial';
   });
@@ -240,7 +249,13 @@ export class RegistroPageComponent implements OnInit {
   }
 
   previous(): void {
-    if (this.activeSection() === 'certificacion') {
+    if (this.activeSection() === 'certificacion-individual') {
+      this.activeSection.set('control-confianza');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    if (this.activeSection() === 'control-confianza') {
+      // TODO: insertar aquí 'Condiciones laborales y prestaciones' cuando se entregue el diseño.
       this.activeSection.set('reclutamiento');
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
@@ -255,9 +270,15 @@ export class RegistroPageComponent implements OnInit {
   }
 
   next(): void {
-    if (this.activeSection() === 'certificacion') return;
+    if (this.activeSection() === 'certificacion-individual') return;
+    if (this.activeSection() === 'control-confianza') {
+      this.activeSection.set('certificacion-individual');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
     if (this.activeSection() === 'reclutamiento') {
-      this.activeSection.set('certificacion');
+      // TODO: Condiciones laborales y prestaciones irá antes de Control de confianza.
+      this.activeSection.set('control-confianza');
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }

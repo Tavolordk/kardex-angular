@@ -35,7 +35,7 @@
           />
         }
 
-        <section class="form-zone" [class.form-zone--recruitment]="activeSection() === 'reclutamiento'" [class.form-zone--certification]="activeSection() === 'certificacion'">
+        <section class="form-zone" [class.form-zone--recruitment]="activeSection() === 'reclutamiento'" [class.form-zone--certification]="activeSection() === 'control-confianza' || activeSection() === 'certificacion-individual'">
           <button
             class="nav-arrow previous"
             type="button"
@@ -112,6 +112,16 @@
                   </button>
                 </footer>
               </article>
+            } @else if (activeSection() === 'control-confianza') {
+              <article class="registration-card registration-card--certification">
+                <app-control-confianza-historial />
+                <footer class="card-actions certification-actions">
+                  <button type="button" class="save-button" [disabled]="facade.isSaving()" (click)="saveDraft()">
+                    <img [src]="assets.icons.save" alt="" />
+                    <span>{{ facade.isSaving() ? 'Guardando...' : 'Guardar borrador' }}</span>
+                  </button>
+                </footer>
+              </article>
             } @else {
               <article class="registration-card registration-card--certification">
                 <app-certificacion-historial />
@@ -130,7 +140,7 @@
           <button
             class="nav-arrow next"
             type="button"
-            [disabled]="activeSection() === 'certificacion'"
+            [disabled]="activeSection() === 'certificacion-individual'"
             (click)="next()"
             aria-label="Siguiente sección"
           >

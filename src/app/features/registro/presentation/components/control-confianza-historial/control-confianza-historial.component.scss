@@ -1,0 +1,386 @@
+:host { display: block; }
+
+.certification-history {
+  min-height: 372px;
+  padding: 24px;
+}
+
+.certification-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  min-height: 48px;
+  margin-bottom: 20px;
+}
+
+.certification-heading h3,
+.certification-modal h3,
+.details-card h3 {
+  margin: 0;
+  color: #1b222b;
+  font: 800 19.8px/23px var(--font-heading);
+  letter-spacing: -.5px;
+}
+
+.certification-heading p {
+  margin: 6px 0 0;
+  color: #4c5561;
+  font: 500 12.8px/19px var(--font-body);
+}
+
+.step-counter {
+  min-width: 45px;
+  min-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  border: 1px solid rgba(114,129,150,.16);
+  border-radius: 10px;
+  background: rgba(114,129,150,.1);
+  color: #5d6b7e;
+  font: 800 10.6px/11px var(--font-heading);
+  white-space: nowrap;
+}
+
+.history-heading {
+  min-height: 39px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.history-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.history-copy strong {
+  color: #1c2633;
+  font: 700 16px/19px var(--font-body);
+}
+
+.history-copy span {
+  color: #748092;
+  font: 400 11px/13px var(--font-body);
+}
+
+.primary-action {
+  border: 0;
+  border-radius: 10px;
+  background: linear-gradient(90deg,#5d6b7e,#8798ad);
+  color: #fff;
+  font: 700 14px/17px var(--font-body);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.new-certification {
+  width: 183px;
+  height: 39px;
+  padding: 0 18px;
+}
+
+.history-list {
+  display: grid;
+  gap: 20px;
+}
+
+.history-entry {
+  min-height: 52px;
+  display: grid;
+  grid-template-columns: auto 210px minmax(0,1fr) 30px;
+  align-items: center;
+  gap: 14px;
+  padding: 11px 14px;
+  border: 1px solid #d8dee6;
+  border-radius: 10px;
+  background: #f5f7f9;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  justify-self: start;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #e8f4ee;
+  color: #237452;
+  font: 700 11px/13px var(--font-body);
+  white-space: nowrap;
+}
+
+.status-badge i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #237452;
+}
+
+.status-badge.expired {
+  background: #f7eaea;
+  color: #a34343;
+}
+
+.status-badge.expired i { background: #a34343; }
+
+.certification-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.certification-copy strong {
+  overflow: hidden;
+  color: #1c2633;
+  font: 700 12px/15px var(--font-body);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.certification-copy span {
+  color: #748092;
+  font: 400 10px/12px var(--font-body);
+  white-space: nowrap;
+}
+
+.institution {
+  min-width: 0;
+  overflow: hidden;
+  color: #435063;
+  font: 400 11px/13px var(--font-body);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.view-details {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 10px;
+  background: #fff;
+  color: #5d6b7e;
+  cursor: pointer;
+}
+
+.view-details span { font-size: 15px; line-height: 1; }
+
+.certification-modal-backdrop,
+.details-backdrop {
+  position: fixed;
+  z-index: 150;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  overflow-y: auto;
+  background: rgba(27,34,43,.18);
+  backdrop-filter: blur(2px);
+}
+
+.certification-modal {
+  width: min(1174px, calc(100vw - 48px));
+  min-height: 362px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.8);
+  border-radius: 32px;
+  background: linear-gradient(165.78deg,rgba(255,255,255,.74),rgba(255,255,255,.54));
+  box-shadow: 0 24px 72px rgba(27,34,43,.14);
+  backdrop-filter: blur(11px);
+}
+
+.certification-modal__content {
+  min-height: 285px;
+  padding: 24px;
+}
+
+.certification-modal__heading {
+  min-height: 24px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.close-modal {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 24px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #455163;
+  font: 400 26px/24px Arial,sans-serif;
+  cursor: pointer;
+}
+
+.certification-form {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 12px 18px;
+  margin-top: 20px;
+}
+
+.field {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field > span {
+  position: relative;
+  width: fit-content;
+  max-width: calc(100% - 10px);
+  color: #4c5561;
+  font: 700 11.2px/13px var(--font-heading);
+  letter-spacing: .36px;
+  text-transform: uppercase;
+}
+
+.field.required > span::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: -9px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #b96e6e;
+}
+
+.field input,
+.field select {
+  width: 100%;
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid rgba(114,129,150,.16);
+  border-radius: 14px;
+  outline: 0;
+  background: rgba(255,255,255,.72);
+  box-shadow: inset 0 1px 0 1px rgba(255,255,255,.56);
+  color: #303842;
+  font: 500 13.4px/17px var(--font-body);
+}
+
+.field input:focus,
+.field select:focus {
+  border-color: rgba(93,107,126,.5);
+  box-shadow: 0 0 0 3px rgba(114,129,150,.08), inset 0 1px 0 1px rgba(255,255,255,.56);
+}
+
+.boolean-control {
+  width: fit-content;
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  padding: 3px;
+  border: 1px solid rgba(114,129,150,.16);
+  border-radius: 12px;
+  background: rgba(175,183,195,.5);
+}
+
+.boolean-control button {
+  height: 28px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: rgba(69,81,99,.8);
+  font: 600 12px/18px var(--font-body);
+  cursor: pointer;
+}
+
+.boolean-control button.active {
+  background: #fff;
+  color: #455163;
+  box-shadow: 0 1px 1.5px rgba(46,3,38,.12);
+}
+
+.certification-modal__actions {
+  min-height: 76px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 19px;
+  border-top: 1px solid rgba(114,129,150,.16);
+}
+
+.modal-submit {
+  width: 108px;
+  height: 39px;
+  padding: 0 18px;
+}
+
+.details-card {
+  position: relative;
+  width: min(520px, calc(100vw - 32px));
+  padding: 28px;
+  border: 1px solid rgba(255,255,255,.8);
+  border-radius: 24px;
+  background: rgba(255,255,255,.92);
+  box-shadow: 0 24px 72px rgba(27,34,43,.18);
+}
+
+.details-card .close-modal { position: absolute; top: 18px; right: 18px; }
+.details-card p { margin: 12px 0 0; color: #435063; font: 400 13px/19px var(--font-body); }
+
+@media (max-height: 460px) {
+  .certification-modal-backdrop,
+  .details-backdrop {
+    place-items: start center;
+  }
+
+  .certification-modal,
+  .details-modal {
+    margin: 16px 0;
+  }
+}
+
+@media (max-width: 1180px) {
+  .certification-history { min-height: auto; }
+  .history-entry { grid-template-columns: auto minmax(150px,210px) minmax(0,1fr) 30px; }
+  .certification-modal-backdrop {
+    place-items: start center;
+    padding: 16px;
+  }
+  .certification-modal {
+    width: min(900px, calc(100vw - 32px));
+    min-height: 0;
+    margin: 16px 0;
+    overflow: hidden;
+  }
+  .certification-modal__content { min-height: 0; }
+  .certification-form { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+
+@media (max-width: 760px) {
+  .certification-history { padding: 18px 14px; }
+  .certification-heading,
+  .history-heading { flex-wrap: wrap; }
+  .new-certification { width: 100%; }
+  .history-entry {
+    grid-template-columns: 1fr auto;
+    gap: 10px 14px;
+    align-items: start;
+  }
+  .status-badge { grid-column: 1; }
+  .certification-copy { grid-column: 1; }
+  .institution { grid-column: 1 / -1; white-space: normal; }
+  .view-details { grid-column: 2; grid-row: 1 / span 2; }
+  .certification-modal-backdrop { align-items: start; overflow-y: auto; padding: 12px; }
+  .certification-modal { width: 100%; margin: 12px 0; max-height: none; border-radius: 20px; }
+  .certification-modal__content { padding: 18px 14px; }
+  .certification-form { grid-template-columns: 1fr; }
+  .certification-modal__actions { padding: 14px; }
+  .modal-submit { width: 100%; }
+}

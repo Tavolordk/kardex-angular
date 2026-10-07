@@ -1,35 +1,32 @@
 <section class="certification-history">
   <header class="certification-heading">
     <div>
-      <h3>Certificación</h3>
-      <p>Estatus de evaluaciones oficiales, vigencias y competencias laborales</p>
+      <h3>Certificación individual</h3>
+      <p>Histórico de certificaciones individuales, vigencias y competencias acreditadas.</p>
     </div>
-    <span class="step-counter">1 /4</span>
+    <span class="step-counter">1 / 1</span>
   </header>
 
   <div class="history-heading">
     <div class="history-copy">
-      <strong>Histórico de certificaciones</strong>
+      <strong>Histórico de certificaciones individuales</strong>
       <span>{{ records().length }} registros asociados al elemento policial</span>
     </div>
     <button type="button" class="primary-action new-certification" (click)="openModal()">+ Nueva certificación</button>
   </div>
 
   <div class="history-list">
-    @for (record of records(); track record.type + record.startDate) {
+    @for (record of records(); track record.startDate + record.standard) {
       <article class="history-entry">
         <span class="status-badge" [class.expired]="record.status === 'Vencida'">
           <i aria-hidden="true"></i>{{ record.status }}
         </span>
-
         <div class="certification-copy">
-          <strong>{{ record.type }}</strong>
+          <strong>{{ record.standard }}</strong>
           <span>{{ record.startDate }} — {{ record.endDate }}</span>
         </div>
-
         <span class="institution">{{ record.institution }}</span>
-
-        <button type="button" class="view-details" aria-label="Ver detalles de certificación" title="Ver detalles" (click)="viewDetails(record)">
+        <button type="button" class="view-details" aria-label="Ver detalles de certificación individual" title="Ver detalles" (click)="viewDetails(record)">
           <span aria-hidden="true">◉</span>
         </button>
       </article>
@@ -42,26 +39,11 @@
     <section class="certification-modal" role="dialog" aria-modal="true" aria-labelledby="certification-modal-title" (click)="$event.stopPropagation()">
       <div class="certification-modal__content">
         <header class="certification-modal__heading">
-          <h3 id="certification-modal-title">Certificación</h3>
+          <h3 id="certification-modal-title">Certificación individual</h3>
           <button type="button" class="close-modal" aria-label="Cerrar" (click)="closeModal()">×</button>
         </header>
 
         <form class="certification-form" [formGroup]="certificationForm">
-          <label class="field required">
-            <span>Resultado de última ECCC</span>
-            <select formControlName="resultadoEccc">
-              <option value="">Seleccione...</option>
-              <option value="Aprobado">Aprobado</option>
-              <option value="No aprobado">No aprobado</option>
-              <option value="En evaluación">En evaluación</option>
-            </select>
-          </label>
-
-          <label class="field required">
-            <span>Fecha de última ECCC</span>
-            <input appInputCase type="date" formControlName="fechaUltimaEccc" />
-          </label>
-
           <div class="field required boolean-field">
             <span>Cuenta con certificación individual</span>
             <div class="boolean-control" role="group" aria-label="Cuenta con certificación individual">
@@ -69,34 +51,28 @@
               <button type="button" [class.active]="certificationForm.controls.certificacionIndividual.value === 'no'" (click)="setCertificationIndividual('no')">No</button>
             </div>
           </div>
-
           <label class="field required">
             <span>Fecha de emisión de certificación individual</span>
             <input appInputCase type="date" formControlName="fechaEmisionCertificacion" />
           </label>
-
           <label class="field required">
-            <span>Fecha de vencimiento del control de confianza</span>
-            <input appInputCase type="date" formControlName="fechaVencimientoControl" />
+            <span>Fecha de vencimiento de certificación individual</span>
+            <input appInputCase type="date" formControlName="fechaVencimientoCertificacion" />
           </label>
-
           <label class="field required">
             <span>Institución de seguridad pública acreditadora</span>
             <input appInputCase formControlName="institucionAcreditadora" />
           </label>
-
           <label class="field required">
             <span>Estándar de Competencia acreditado</span>
             <input appInputCase formControlName="estandarCompetencia" />
           </label>
-
           <label class="field required">
             <span>Fecha de acreditación de estándar</span>
             <input appInputCase type="date" formControlName="fechaAcreditacionEstandar" />
           </label>
         </form>
       </div>
-
       <footer class="certification-modal__actions">
         <button type="button" class="primary-action modal-submit" (click)="addCertification()">Agregar</button>
       </footer>
@@ -106,13 +82,13 @@
 
 @if (selectedRecord(); as record) {
   <div class="details-backdrop" (click)="closeDetails()">
-    <section class="details-card" role="dialog" aria-modal="true" aria-label="Detalle de certificación" (click)="$event.stopPropagation()">
+    <section class="details-card" role="dialog" aria-modal="true" aria-label="Detalle de certificación individual" (click)="$event.stopPropagation()">
       <button type="button" class="close-modal" aria-label="Cerrar" (click)="closeDetails()">×</button>
-      <h3>{{ record.type }}</h3>
+      <h3>Certificación individual</h3>
       <p><strong>Estatus:</strong> {{ record.status }}</p>
       <p><strong>Periodo:</strong> {{ record.startDate }} — {{ record.endDate }}</p>
       <p><strong>Institución:</strong> {{ record.institution }}</p>
-      <p><strong>Resultado:</strong> {{ record.result }}</p>
+      <p><strong>Estándar:</strong> {{ record.standard }}</p>
     </section>
   </div>
 }
