@@ -1,5 +1,11 @@
 export type RegistroStepKey = 'identificacion' | 'origen' | 'contacto' | 'fotografia';
 
+export interface NormalContact {
+  id: string;
+  telefono: string;
+  correo: string;
+}
+
 export interface EmergencyContact {
   id: string;
   nombre: string;
@@ -36,6 +42,7 @@ export interface RegistroDraft {
   codigoPostal: string;
   telefono: string;
   correo: string;
+  contactos: NormalContact[];
   contactosEmergencia: EmergencyContact[];
   fechaToma: string;
   vigenciaFotografia: string;
@@ -74,6 +81,7 @@ export const EMPTY_REGISTRO_DRAFT: RegistroDraft = {
   codigoPostal: '',
   telefono: '',
   correo: '',
+  contactos: [],
   contactosEmergencia: [],
   fechaToma: '',
   vigenciaFotografia: '3 años desde la fecha de toma',

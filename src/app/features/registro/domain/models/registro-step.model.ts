@@ -8,7 +8,7 @@ export interface RegistroStep {
 }
 
 export interface SectionProgress {
-  key: RegistroStepKey | 'reclutamiento' | 'control-confianza' | 'certificacion-individual';
+  key: RegistroStepKey | 'reclutamiento' | 'condiciones-laborales' | 'control-confianza' | 'certificacion-individual';
   label: string;
   percentage: number;
 }

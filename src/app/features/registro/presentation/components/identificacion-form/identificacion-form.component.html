@@ -9,10 +9,10 @@
     <label class="field required"><span>Sexo</span><select formControlName="sexo"><option value="">Seleccione...</option>@for (item of sexos(); track item.value) { <option [value]="item.value">{{ item.label }}</option> }</select></label>
 
     <label class="field muted-field"><span>Identidad de género</span><select formControlName="identidadGenero"><option value="">Seleccione...</option>@for (item of identidadesGenero(); track item.value) { <option [value]="item.value">{{ item.label }}</option> }</select></label>
-    <label class="field required"><span>País de nacimiento</span><select formControlName="nacionalidad"><option value="">Seleccione...</option>@for (item of paises(); track item.value) { <option [value]="item.value">{{ item.label }}</option> }</select></label>
-    <label class="field required muted-field"><span>Entidad federativa de nacimiento</span><select formControlName="entidadNacimiento"><option value="">Seleccione...</option><option>Guerrero</option><option>Ciudad de México</option><option>Estado de México</option><option>Jalisco</option></select></label>
+    <label class="field required"><span>País de nacimiento</span><select formControlName="nacionalidad" (change)="onCountryChange()"><option value="">Seleccione...</option>@for (item of paises(); track item.value) { <option [value]="item.value">{{ item.label }}</option> }</select></label>
+    <label [class.required]="isMexico()" class="field muted-field"><span>Entidad federativa de nacimiento</span><select formControlName="entidadNacimiento" (change)="onEntityChange()"><option value="">Seleccione...</option><option>Guerrero</option><option>Ciudad de México</option><option>Estado de México</option><option>Jalisco</option></select></label>
 
-    <label class="field required muted-field"><span>Municipio de nacimiento</span><select formControlName="municipioNacimiento"><option value="">Seleccione...</option><option>Acapulco de Juárez</option><option>Chilpancingo de los Bravo</option><option>Atoyac de Álvarez</option></select></label>
+    <label [class.required]="isMexico()" class="field muted-field"><span>Municipio de nacimiento</span><select formControlName="municipioNacimiento"><option value="">Seleccione...</option><option>Acapulco de Juárez</option><option>Chilpancingo de los Bravo</option><option>Atoyac de Álvarez</option></select></label>
     <label class="field"><span>CUIP</span><input appInputCase formControlName="cuip" maxlength="30" placeholder="CLAVE POLICIAL" /></label>
     <label class="field required"><span>Estado civil</span><select formControlName="estadoCivil"><option value="">Seleccione...</option>@for (item of estadosCiviles(); track item.value) { <option [value]="item.value">{{ item.label }}</option> }</select></label>
 
@@ -41,6 +41,9 @@
         <b>Examinar</b>
         <input appInputCase type="file" accept="application/pdf,image/png,image/jpeg" (change)="onLicenseFile($event)" />
       </label>
+      @if (form().get('documentoLicenciaDataUrl')?.value) {
+        <div class="document-demo-actions"><button type="button" (click)="viewLicenseFile()">Ver documento</button><button type="button" (click)="removeLicenseFile()">Eliminar adjunto</button></div>
+      }
       @if (licenseError()) { <small class="error-text">{{ licenseError() }}</small> }
     </div>
   </div>

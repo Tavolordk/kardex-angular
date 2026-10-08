@@ -1,9 +1,8 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { InputCaseDirective } from '../../../../../shared/directives/input-case.directive';
+import { ChangeDetectionStrategy, Component, input, signal } from '@angular/core';
 
-interface ControlConfianzaRecord {
-  status: 'Vigente' | 'Vencido';
+/** Información de ECCC. El componente es deliberadamente de solo lectura. */
+export interface ControlConfianzaRecord {
+  status: 'Vigente' | 'Vencido' | 'En proceso';
   result: 'Aprobado' | 'No aprobado' | 'En evaluación';
   evaluationDate: string;
   expirationDate: string;
@@ -13,85 +12,36 @@ interface ControlConfianzaRecord {
 @Component({
   selector: 'app-control-confianza-historial',
   standalone: true,
-  imports: [ReactiveFormsModule, InputCaseDirective],
   templateUrl: './control-confianza-historial.component.html',
   styleUrl: './control-confianza-historial.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ControlConfianzaHistorialComponent {
-  private readonly fb = inject(FormBuilder).nonNullable;
-
-  readonly modalOpen = signal(false);
+  // Los registros solo deben llegar desde la integración ECCC; no se crean manualmente.
+  readonly records = input<readonly ControlConfianzaRecord[]>([]);
   readonly selectedRecord = signal<ControlConfianzaRecord | null>(null);
-
-  readonly records = signal<ControlConfianzaRecord[]>([
-    {
-      status: 'Vigente',
-      result: 'Aprobado',
-      evaluationDate: '15/03/2023',
-      expirationDate: '15/03/2026',
-      institution: 'Centro Estatal de Evaluación y Control de Confianza'
-    },
-    {
-      status: 'Vencido',
-      result: 'Aprobado',
-      evaluationDate: '08/02/2020',
-      expirationDate: '08/02/2023',
-      institution: 'Centro Estatal de Evaluación y Control de Confianza'
-    }
-  ]);
-
-  readonly form = this.fb.group({
-    resultadoEccc: ['', Validators.required],
-    fechaUltimaEccc: ['', Validators.required],
-    fechaVencimientoControl: ['', Validators.required],
-    institucionEvaluadora: ['', Validators.required]
-  });
-
-  openModal(): void {
-    this.selectedRecord.set(null);
-    this.form.reset();
-    this.modalOpen.set(true);
+  private parseDate(value: string): Date | null {
+    const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value);
+    const date = m ? new Date(+m[3], +m[2] - 1, +m[1]) : new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+  expiry(record: ControlConfianzaRecord): Date | null {
+    const date = this.parseDate(record.evaluationDate);
+    if (!date) return null;
+    const expiry = new Date(date);
+    expiry.setFullYear(expiry.getFullYear() + 3);
+    return expiry;
+  }
+  expiryLabel(record: ControlConfianzaRecord): string {
+    const date = this.expiry(record);
+    return date ? new Intl.DateTimeFormat('es-MX', {day:'2-digit',month:'2-digit',year:'numeric'}).format(date) : 'No disponible';
+  }
+  statusLabel(record: ControlConfianzaRecord): string {
+    const expiry = this.expiry(record);
+    if (!expiry) return 'Sin información';
+    return expiry.getTime() < new Date().setHours(0,0,0,0) ? 'Vencido' : 'Vigente';
   }
 
-  closeModal(): void {
-    this.modalOpen.set(false);
-  }
-
-  addRecord(): void {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
-
-    const value = this.form.getRawValue();
-    this.records.update(items => [{
-      status: this.isExpired(value.fechaVencimientoControl) ? 'Vencido' : 'Vigente',
-      result: value.resultadoEccc as ControlConfianzaRecord['result'],
-      evaluationDate: this.toDisplayDate(value.fechaUltimaEccc),
-      expirationDate: this.toDisplayDate(value.fechaVencimientoControl),
-      institution: value.institucionEvaluadora
-    }, ...items]);
-    this.closeModal();
-  }
-
-  viewDetails(record: ControlConfianzaRecord): void {
-    this.selectedRecord.set(record);
-  }
-
-  closeDetails(): void {
-    this.selectedRecord.set(null);
-  }
-
-  private toDisplayDate(value: string): string {
-    if (!value) return '';
-    const [year, month, day] = value.split('-');
-    return year && month && day ? `${day}/${month}/${year}` : value;
-  }
-
-  private isExpired(value: string): boolean {
-    if (!value) return false;
-    const date = new Date(`${value}T23:59:59`);
-    return Number.isFinite(date.getTime()) && date.getTime() < Date.now();
-  }
+  viewDetails(record: ControlConfianzaRecord): void { this.selectedRecord.set(record); }
+  closeDetails(): void { this.selectedRecord.set(null); }
 }

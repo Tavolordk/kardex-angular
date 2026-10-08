@@ -1,94 +1,41 @@
 <section class="certification-history">
   <header class="certification-heading">
-    <div>
-      <h3>Certificación individual</h3>
-      <p>Histórico de certificaciones individuales, vigencias y competencias acreditadas.</p>
-    </div>
-    <span class="step-counter">1 / 1</span>
+    <div><h3>Certificación individual</h3><p>Certificado individual y estándares de competencia acreditados por la persona.</p></div>
   </header>
-
-  <div class="history-heading">
-    <div class="history-copy">
-      <strong>Histórico de certificaciones individuales</strong>
-      <span>{{ records().length }} registros asociados al elemento policial</span>
+  <div class="certificate-summary">
+    <div class="history-heading"><div class="history-copy"><strong>Certificado individual</strong><span>Información proveniente del ECCC. Se actualiza automáticamente y no es editable.</span></div><span class="step-counter">Solo lectura</span></div>
+    <div class="certificate-fields">
+      <div><span>Cuenta con certificación individual</span><strong>{{ certificate()?.hasCertificate === true ? 'Sí' : certificate()?.hasCertificate === false ? 'No' : 'Sin información de ECCC' }}</strong></div>
+      @if(certificate()?.hasCertificate === true) { <div><span>Fecha de emisión</span><strong>{{ certificate()?.issueDate || 'No disponible' }}</strong></div> }
     </div>
-    <button type="button" class="primary-action new-certification" (click)="openModal()">+ Nueva certificación</button>
   </div>
-
+  <div class="history-heading standards-heading"><div class="history-copy"><strong>Estándares de competencia</strong><span>Registros de estándares acreditados por la persona</span></div><button type="button" class="primary-action new-certification" (click)="openAdd()">+ Agregar estándar</button></div>
   <div class="history-list">
-    @for (record of records(); track record.startDate + record.standard) {
-      <article class="history-entry">
-        <span class="status-badge" [class.expired]="record.status === 'Vencida'">
-          <i aria-hidden="true"></i>{{ record.status }}
-        </span>
-        <div class="certification-copy">
-          <strong>{{ record.standard }}</strong>
-          <span>{{ record.startDate }} — {{ record.endDate }}</span>
-        </div>
-        <span class="institution">{{ record.institution }}</span>
-        <button type="button" class="view-details" aria-label="Ver detalles de certificación individual" title="Ver detalles" (click)="viewDetails(record)">
-          <span aria-hidden="true">◉</span>
-        </button>
+    @for(record of standards(); track record.id) {
+      <article class="history-entry standard-entry">
+        <div class="certification-copy"><strong>{{record.standard}}</strong><span>Fecha de acreditación: {{record.accreditationDate}}</span></div>
+        <button type="button" class="view-details" aria-label="Ver detalle del estándar" (click)="viewDetails(record)">Ver</button>
+        <button type="button" class="view-details" (click)="editStandard(record)">Editar</button>
+        <button type="button" class="view-details" (click)="deleteStandard(record)">Eliminar</button>
       </article>
-    }
+    } @empty { <p class="eccc-note" role="status">Aún no hay estándares de competencia registrados.</p> }
   </div>
 </section>
-
-@if (modalOpen()) {
-  <div class="certification-modal-backdrop" (click)="closeModal()">
-    <section class="certification-modal" role="dialog" aria-modal="true" aria-labelledby="certification-modal-title" (click)="$event.stopPropagation()">
-      <div class="certification-modal__content">
-        <header class="certification-modal__heading">
-          <h3 id="certification-modal-title">Certificación individual</h3>
-          <button type="button" class="close-modal" aria-label="Cerrar" (click)="closeModal()">×</button>
-        </header>
-
-        <form class="certification-form" [formGroup]="certificationForm">
-          <div class="field required boolean-field">
-            <span>Cuenta con certificación individual</span>
-            <div class="boolean-control" role="group" aria-label="Cuenta con certificación individual">
-              <button type="button" [class.active]="certificationForm.controls.certificacionIndividual.value === 'si'" (click)="setCertificationIndividual('si')">Sí</button>
-              <button type="button" [class.active]="certificationForm.controls.certificacionIndividual.value === 'no'" (click)="setCertificationIndividual('no')">No</button>
-            </div>
-          </div>
-          <label class="field required">
-            <span>Fecha de emisión de certificación individual</span>
-            <input appInputCase type="date" formControlName="fechaEmisionCertificacion" />
-          </label>
-          <label class="field required">
-            <span>Fecha de vencimiento de certificación individual</span>
-            <input appInputCase type="date" formControlName="fechaVencimientoCertificacion" />
-          </label>
-          <label class="field required">
-            <span>Institución de seguridad pública acreditadora</span>
-            <input appInputCase formControlName="institucionAcreditadora" />
-          </label>
-          <label class="field required">
-            <span>Estándar de Competencia acreditado</span>
-            <input appInputCase formControlName="estandarCompetencia" />
-          </label>
-          <label class="field required">
-            <span>Fecha de acreditación de estándar</span>
-            <input appInputCase type="date" formControlName="fechaAcreditacionEstandar" />
-          </label>
-        </form>
-      </div>
-      <footer class="certification-modal__actions">
-        <button type="button" class="primary-action modal-submit" (click)="addCertification()">Agregar</button>
-      </footer>
-    </section>
-  </div>
+@if(isModalOpen()) {
+  <div class="certification-modal-backdrop" (click)="closeAdd()"><section class="certification-modal" role="dialog" aria-modal="true" aria-label="Agregar estándar de competencia" (click)="$event.stopPropagation()">
+    <div class="certification-modal__content">
+      <div class="certification-modal__heading"><div><h3>{{editingId() === null ? 'Agregar' : 'Editar'}} estándar de competencia</h3><p>Registre el estándar de competencia acreditado y su fecha de acreditación.</p></div><button type="button" class="close-modal" aria-label="Cerrar" (click)="closeAdd()">×</button></div>
+      <form id="standard-form" class="certification-form" (submit)="$event.preventDefault(); saveStandard()">
+        <label class="field required"><span>Estándar de competencia</span><input [value]="standardName()" (input)="standardName.set($any($event.target).value)" maxlength="180" required /></label>
+        <label class="field required"><span>Fecha de acreditación</span><input type="date" [value]="accreditationDate()" (input)="accreditationDate.set($any($event.target).value)" required /></label>
+      </form>
+      @if(formError()) {<p class="form-error" role="alert">{{formError()}}</p>}
+    </div>
+    <div class="certification-modal__actions"><button type="button" class="secondary-action" (click)="closeAdd()">Cancelar</button><button type="submit" form="standard-form" class="primary-action modal-submit">Guardar</button></div>
+  </section></div>
 }
-
-@if (selectedRecord(); as record) {
-  <div class="details-backdrop" (click)="closeDetails()">
-    <section class="details-card" role="dialog" aria-modal="true" aria-label="Detalle de certificación individual" (click)="$event.stopPropagation()">
-      <button type="button" class="close-modal" aria-label="Cerrar" (click)="closeDetails()">×</button>
-      <h3>Certificación individual</h3>
-      <p><strong>Estatus:</strong> {{ record.status }}</p>
-      <p><strong>Periodo:</strong> {{ record.startDate }} — {{ record.endDate }}</p>
-      <p><strong>Institución:</strong> {{ record.institution }}</p>
-      <p><strong>Estándar:</strong> {{ record.standard }}</p>
-    </section>
-  </div>
+@if(selectedRecord(); as record) {
+  <div class="details-backdrop" (click)="closeDetails()"><section class="details-card" role="dialog" aria-modal="true" aria-label="Detalle de estándar de competencia" (click)="$event.stopPropagation()">
+    <button class="close-modal" type="button" aria-label="Cerrar" (click)="closeDetails()">×</button><h3>Estándar de competencia</h3><p><strong>Estándar:</strong> {{record.standard}}</p><p><strong>Fecha de acreditación:</strong> {{record.accreditationDate}}</p>
+  </section></div>
 }
