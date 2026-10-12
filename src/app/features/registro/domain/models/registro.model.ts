@@ -24,6 +24,9 @@ export interface RegistroDraft {
   sexo: string;
   identidadGenero: string;
   nacionalidad: string;
+  nacionalidadRnpsp: string;
+  tipoSangre: string;
+  factorSangre: string;
   entidadNacimiento: string;
   municipioNacimiento: string;
   estadoCivil: string;
@@ -63,6 +66,9 @@ export const EMPTY_REGISTRO_DRAFT: RegistroDraft = {
   sexo: '',
   identidadGenero: '',
   nacionalidad: '',
+  nacionalidadRnpsp: '',
+  tipoSangre: '',
+  factorSangre: '',
   entidadNacimiento: '',
   municipioNacimiento: '',
   estadoCivil: '',

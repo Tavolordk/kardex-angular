@@ -96,6 +96,9 @@ export class RegistroPageComponent implements OnInit {
     sexo: ['', Validators.required],
     identidadGenero: [''],
     nacionalidad: ['', Validators.required],
+    nacionalidadRnpsp: [''],
+    tipoSangre: [''],
+    factorSangre: [''],
     entidadNacimiento: ['', Validators.required],
     municipioNacimiento: ['', Validators.required],
     estadoCivil: ['', Validators.required],
@@ -261,7 +264,7 @@ export class RegistroPageComponent implements OnInit {
     const step = this.facade.activeStep();
     const fields = [...this.requiredByStep[step]];
     if (step === 'identificacion') {
-      const nationality = this.form.controls.nacionalidad.value.toUpperCase();
+      const nationality = this.form.controls.nacionalidad.value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
       if (nationality && !nationality.includes('MEX')) {
         fields.splice(fields.indexOf('entidadNacimiento'), 1);
         fields.splice(fields.indexOf('municipioNacimiento'), 1);

@@ -1,4 +1,6 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { CatalogoOption, entidadRnpspId } from '../../../../catalogos/domain/models/catalogo.model';
+import { CatalogosService } from '../../../../catalogos/infrastructure/catalogos.service';
 import { FormsModule } from '@angular/forms';
 import { InputCaseDirective } from '../../../../../shared/directives/input-case.directive';
 
@@ -13,6 +15,61 @@ interface Arma { tipo: string; licencia: string; fecha: string; vigencia: string
  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class CondicionesLaboralesComponent {
+ private readonly catalogos = inject(CatalogosService);
+ readonly catalogError = signal('');
+ readonly entidades = signal<CatalogoOption[]>([]);
+ readonly municipiosAdscripcion = signal<CatalogoOption[]>([]);
+ readonly jerarquias = signal<CatalogoOption[]>([]);
+ readonly tiposArma = signal<CatalogoOption[]>([]);
+ readonly situacionesLaborales = signal<CatalogoOption[]>([]);
+ readonly institucionesSociales = signal<CatalogoOption[]>([]);
+ readonly institucionesVivienda = signal<CatalogoOption[]>([]);
+ readonly mecanismosFinanciamiento = signal<CatalogoOption[]>([]);
+ readonly tiposVivienda = signal<CatalogoOption[]>([]);
+ private municipioRequest = 0;
+
+ private async loadCatalogos(): Promise<void> {
+   const settled = await Promise.allSettled([
+     this.catalogos.entidadesRnpsp(),
+     this.catalogos.jerarquiasRnpsp(),
+     this.catalogos.tiposArmaRnpsp(),
+     this.catalogos.situacionLaboral(),
+     this.catalogos.institucionSeguroSocial(),
+     this.catalogos.institucionSeguroSocialVivienda(),
+     this.catalogos.mecanismoFinanciamiento(),
+     this.catalogos.tipoVivienda()
+   ]);
+   const options = [this.entidades, this.jerarquias, this.tiposArma,
+     this.situacionesLaborales, this.institucionesSociales, this.institucionesVivienda,
+     this.mecanismosFinanciamiento, this.tiposVivienda];
+   settled.forEach((item, i) => { if (item.status === 'fulfilled') options[i].set(item.value); });
+   if (settled.some(item => item.status === 'rejected'))
+     this.catalogError.set('No fue posible cargar uno o más catálogos laborales.');
+   await this.loadMunicipiosAdscripcion();
+ }
+
+ async onEntidadAdscripcionChange(): Promise<void> {
+   this.adscripcion.municipio = '';
+   await this.loadMunicipiosAdscripcion();
+ }
+
+ private async loadMunicipiosAdscripcion(): Promise<void> {
+   const request = ++this.municipioRequest;
+   this.municipiosAdscripcion.set([]);
+   const id = entidadRnpspId(this.entidades(), this.adscripcion.entidad);
+   if (id === null) {
+     if (this.adscripcion.entidad && this.entidades().length)
+       this.catalogError.set('La entidad seleccionada no contiene un identificador RNPSP válido.');
+     return;
+   }
+   try {
+     const result = await this.catalogos.municipiosRnpsp(id);
+     if (request === this.municipioRequest) this.municipiosAdscripcion.set(result);
+   } catch {
+     if (request === this.municipioRequest) this.catalogError.set('No se pudieron obtener los municipios de adscripción.');
+   }
+ }
+
  readonly tabs: {id: Section; label: string}[] = [
   {id:'adscripcion',label:'Adscripción'}, {id:'situacion',label:'Situación y condición laboral'},
   {id:'armas',label:'Portación laboral'}, {id:'percepciones',label:'Percepciones, vacaciones y nómina'},
@@ -33,11 +90,16 @@ export class CondicionesLaboralesComponent {
  }
  private persist(): void {
    try {
-     const data: Record<string, unknown> = {adscripciones: this.adscripciones(), armas: this.armas(), jornadas: this.jornadas(), reingresos: this.reingresos(), ingreso: this.ingreso, ingresoRegistrado: this.ingresoRegistrado(), regimen: this.regimen, situacion: this.situacion, fechaCargo: this.fechaCargo, sueldo: this.sueldo, vacaciones: this.vacaciones, numeroNomina: this.numeroNomina, institucionSocial: this.institucionSocial, numeroSeguridadSocial: this.numeroSeguridadSocial, tipoPrestacion: this.tipoPrestacion, savedAt: this.savedAt()};
+     const data: Record<string, unknown> = {adscripciones: this.adscripciones(), armas: this.armas(), jornadas: this.jornadas(), reingresos: this.reingresos(), ingreso: this.ingreso, ingresoRegistrado: this.ingresoRegistrado(), regimen: this.regimen, situacion: this.situacion, fechaCargo: this.fechaCargo, sueldo: this.sueldo, vacaciones: this.vacaciones, numeroNomina: this.numeroNomina, institucionSocial: this.institucionSocial, institucionVivienda: this.institucionVivienda, mecanismoFinanciamiento: this.mecanismoFinanciamiento, tipoVivienda: this.tipoVivienda, numeroSeguridadSocial: this.numeroSeguridadSocial, tipoPrestacion: this.tipoPrestacion, savedAt: this.savedAt()};
      for (const [key,value] of Object.entries(data)) localStorage.setItem('kardex.demo.laboral.' + key, JSON.stringify(value));
    } catch { /* Quota or storage unavailable */ }
  }
- editAdscripcion(index: number): void { this.editing.set(index); this.adscripcion = {...this.adscripciones()[index]}; this.modal.set('adscripcion'); }
+ editAdscripcion(index: number): void {
+   this.editing.set(index);
+   this.adscripcion = {...this.adscripciones()[index]};
+   this.modal.set('adscripcion');
+   void this.loadMunicipiosAdscripcion();
+ }
  editArma(index: number): void { this.editing.set(index); this.arma = {...this.armas()[index]}; this.modal.set('armas'); }
  deleteItem(which: 'adscripcion' | 'armas' | 'jornadas' | 'reingresos', index: number): void {
    if (!confirm('¿Eliminar este registro de demostración?')) return;
@@ -67,9 +129,10 @@ export class CondicionesLaboralesComponent {
  arma: Arma = this.emptyArma();
  regimen = ''; situacion = ''; fechaCargo = ''; jornada = ''; entrada = ''; salida = ''; descanso = ''; ingreso = ''; reingreso = '';
  sueldo = ''; vacaciones = ''; numeroNomina = ''; institucionSocial = ''; numeroSeguridadSocial = ''; tipoPrestacion = '';
- constructor() { this.ingreso = this.restore('ingreso', ''); this.ingresoRegistrado.set(this.restore('ingresoRegistrado', false)); for (const key of ['regimen','situacion','fechaCargo','sueldo','vacaciones','numeroNomina','institucionSocial','numeroSeguridadSocial','tipoPrestacion'] as const) this[key] = this.restore(key, ''); }
+ institucionVivienda = ''; mecanismoFinanciamiento = ''; tipoVivienda = '';
+ constructor() { void this.loadCatalogos(); this.ingreso = this.restore('ingreso', ''); this.ingresoRegistrado.set(this.restore('ingresoRegistrado', false)); for (const key of ['regimen','situacion','fechaCargo','sueldo','vacaciones','numeroNomina','institucionSocial','institucionVivienda','mecanismoFinanciamiento','tipoVivienda','numeroSeguridadSocial','tipoPrestacion'] as const) this[key] = this.restore(key, ''); }
  changeTab(id: Section): void {this.active.set(id); this.feedback.set('');}
- open(which:'adscripcion'|'armas'):void {this.editing.set(null);this.modal.set(which);this.adscripcion=this.emptyAdscripcion();this.arma=this.emptyArma();}
+ open(which:'adscripcion'|'armas'):void {this.editing.set(null);this.modal.set(which);this.adscripcion=this.emptyAdscripcion();this.arma=this.emptyArma();this.municipiosAdscripcion.set([]);}
  close():void {this.modal.set(null);}
  saveAdscripcion():void {
   if (!this.adscripcion.placa.trim() || !this.adscripcion.institucion.trim() || !this.adscripcion.dependencia.trim() || !this.adscripcion.entidad.trim() || !this.adscripcion.municipio.trim() || !this.adscripcion.jerarquia.trim()) {this.feedback.set('Complete placa, institución, dependencia, entidad, municipio y jerarquía.');return;}

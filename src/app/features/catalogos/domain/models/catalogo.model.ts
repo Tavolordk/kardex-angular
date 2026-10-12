@@ -2,6 +2,18 @@ export interface CatalogoOption {
   value: string;
   label: string;
   raw: unknown;
+  /** Identificador real devuelto por el backend; no altera el valor persistido. */
+  id?: string | number;
+}
+
+export type CatalogoRnpspId = 1 | 2 | 3 | 5 | 6 | 8 | 9 | 10;
+
+/** Devuelve el identificador requerido para filtrar municipios por entidad. */
+export function entidadRnpspId(options: CatalogoOption[], selected: string): number | null {
+  const raw = options.find(option => option.value === selected)?.id;
+  if (raw === undefined || raw === null || String(raw).trim() === '') return null;
+  const id = Number(raw);
+  return Number.isInteger(id) && id > 0 ? id : null;
 }
 
 export type CatalogoEndpoint =

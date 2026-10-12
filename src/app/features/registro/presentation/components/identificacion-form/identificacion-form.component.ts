@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, Component, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, input, OnInit, signal } from '@angular/core';
 import { FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { InputCaseDirective } from '../../../../../shared/directives/input-case.directive';
 import { ASSETS } from '../../../../../core/constants/assets';
-import { CatalogoOption } from '../../../../catalogos/domain/models/catalogo.model';
+import { CatalogoOption, entidadRnpspId } from '../../../../catalogos/domain/models/catalogo.model';
 import { CatalogosService } from '../../../../catalogos/infrastructure/catalogos.service';
 
 @Component({
@@ -13,8 +14,9 @@ import { CatalogosService } from '../../../../catalogos/infrastructure/catalogos
   styleUrls: ['../form-sections.scss', './identificacion-form.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class IdentificacionFormComponent {
+export class IdentificacionFormComponent implements OnInit {
   private readonly catalogos = inject(CatalogosService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly form = input.required<FormGroup>();
   readonly licenseError = signal('');
@@ -26,12 +28,20 @@ export class IdentificacionFormComponent {
   readonly paises = signal<CatalogoOption[]>([]);
   readonly estadosCiviles = signal<CatalogoOption[]>([]);
   readonly vulnerabilidades = signal<CatalogoOption[]>([]);
+  readonly nacionalidadesRnpsp = signal<CatalogoOption[]>([]);
+  readonly tiposSangre = signal<CatalogoOption[]>([]);
+  readonly factoresSangre = signal<CatalogoOption[]>([]);
+  readonly entidades = signal<CatalogoOption[]>([]);
+  readonly municipiosNacimiento = signal<CatalogoOption[]>([]);
+  private municipioRequest = 0;
   isMexico(): boolean {
     const selected = String(this.form().get('nacionalidad')?.value || '');
     const label = this.paises().find(p => String(p.value) === selected)?.label || selected;
     return /M[EÉ]XICO/i.test(label);
   }
   onCountryChange(): void {
+    const selected = String(this.form().get('nacionalidad')?.value || '');
+    if (!selected) return;
     const mexico = this.isMexico();
     for (const key of ['entidadNacimiento', 'municipioNacimiento']) {
       const control = this.form().get(key);
@@ -42,11 +52,31 @@ export class IdentificacionFormComponent {
       control.updateValueAndValidity();
     }
   }
-  onEntityChange(): void { this.form().get('municipioNacimiento')?.setValue(''); }
-
-
-  constructor() {
+  ngOnInit(): void {
+    this.form().get('entidadNacimiento')?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.form().get('municipioNacimiento')?.setValue('');
+      void this.loadMunicipiosNacimiento();
+    });
+    this.form().get('nacionalidad')?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.onCountryChange());
     void this.loadCatalogos();
+  }
+
+  private async loadMunicipiosNacimiento(): Promise<void> {
+    const request = ++this.municipioRequest;
+    this.municipiosNacimiento.set([]);
+    const idEntidad = entidadRnpspId(this.entidades(), String(this.form().get('entidadNacimiento')?.value || ''));
+    if (!this.isMexico()) return;
+    if (idEntidad === null) {
+      if (this.form().get('entidadNacimiento')?.value && this.entidades().length)
+        this.catalogError.set('La entidad seleccionada no contiene un identificador RNPSP válido para consultar municipios.');
+      return;
+    }
+    try {
+      const municipios = await this.catalogos.municipiosRnpsp(idEntidad);
+      if (request === this.municipioRequest) this.municipiosNacimiento.set(municipios);
+    } catch {
+      if (request === this.municipioRequest) this.catalogError.set('No se pudieron cargar los municipios de nacimiento.');
+    }
   }
 
   private async loadCatalogos(): Promise<void> {
@@ -56,7 +86,11 @@ export class IdentificacionFormComponent {
       this.catalogos.identidadGenero(),
       this.catalogos.pais(),
       this.catalogos.estadoCivil(),
-      this.catalogos.tipoVulnerabilidad()
+      this.catalogos.tipoVulnerabilidad(),
+      this.catalogos.nacionalidadesRnpsp(),
+      this.catalogos.tiposSangreRnpsp(),
+      this.catalogos.factoresSangreRnpsp(),
+      this.catalogos.entidadesRnpsp()
     ]);
 
     if (results[0].status === 'fulfilled') this.sexos.set(results[0].value);
@@ -65,6 +99,11 @@ export class IdentificacionFormComponent {
     this.onCountryChange();
     if (results[3].status === 'fulfilled') this.estadosCiviles.set(results[3].value);
     if (results[4].status === 'fulfilled') this.vulnerabilidades.set(results[4].value);
+    if (results[5].status === 'fulfilled') this.nacionalidadesRnpsp.set(results[5].value);
+    if (results[6].status === 'fulfilled') this.tiposSangre.set(results[6].value);
+    if (results[7].status === 'fulfilled') this.factoresSangre.set(results[7].value);
+    if (results[8].status === 'fulfilled') this.entidades.set(results[8].value);
+    await this.loadMunicipiosNacimiento();
 
     if (results.some(result => result.status === 'rejected')) {
       this.catalogError.set('No fue posible cargar uno o más catálogos. Intenta nuevamente.');
