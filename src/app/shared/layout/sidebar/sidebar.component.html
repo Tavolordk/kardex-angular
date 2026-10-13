@@ -1,15 +1,24 @@
 <aside class="sidebar" [class.sidebar--closed]="!open()">
   <div class="sidebar-title">
     <span>MÓDULOS</span>
-    <button type="button" (click)="toggled.emit()" aria-label="Contraer menú"><img [src]="assets.icons.collapse" alt="" /></button>
+    <button type="button" (click)="toggled.emit()" aria-label="Contraer o expandir menú" [attr.aria-expanded]="open()">
+      <img [src]="assets.icons.collapse" alt="" />
+    </button>
   </div>
   <nav aria-label="Módulos principales">
     @for (item of items; track item.title) {
-      <button class="menu-item" type="button" [class.active]="item.active">
-        <span class="menu-icon"><img [src]="item.icon" alt="" /></span>
-        <span class="menu-copy"><strong>{{ item.title }}</strong><small>{{ item.description }}</small></span>
-        <span class="arrow">›</span>
-      </button>
+      @if (item.path) {
+        <a class="menu-item active" [routerLink]="item.path" aria-current="page" [attr.title]="item.title">
+          <span class="menu-icon"><img [src]="item.icon" alt="" /></span>
+          <span class="menu-copy"><strong>{{ item.title }}</strong><small>{{ item.description }}</small></span>
+          <span class="arrow" aria-hidden="true">›</span>
+        </a>
+      } @else {
+        <span class="menu-item menu-item--disabled" [attr.title]="item.title + ': módulo pendiente de integración'" aria-disabled="true">
+          <span class="menu-icon"><img [src]="item.icon" alt="" /></span>
+          <span class="menu-copy"><strong>{{ item.title }}</strong><small>{{ item.description }}</small></span>
+        </span>
+      }
     }
   </nav>
 </aside>

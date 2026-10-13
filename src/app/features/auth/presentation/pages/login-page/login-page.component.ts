@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, QueryList, ViewChildren, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { InputCaseDirective } from '../../../../../shared/directives/input-case.directive';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { RequestVerificationUseCase } from '../../../application/request-verification.use-case';
 import { VerifyAccessCodeUseCase } from '../../../application/verify-access-code.use-case';
 import { AccessCredentials, VerificationChallenge, VerificationChannel } from '../../../domain/models/auth.model';
@@ -32,7 +32,6 @@ export class LoginPageComponent {
   private readonly verifyAccessCode = inject(VerifyAccessCodeUseCase);
   private readonly captchaService = inject(CaptchaService);
   private readonly router = inject(Router);
-  private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
   private timerId: number | null = null;
   private lastCredentials: AccessCredentials | null = null;
@@ -145,7 +144,7 @@ export class LoginPageComponent {
     this.busy.set(true);
     try {
       await this.verifyAccessCode.execute(challenge.id, code);
-      await this.router.navigateByUrl(this.safeReturnUrl());
+      await this.router.navigateByUrl('/menu', { replaceUrl: true });
     } catch (error) {
       this.errorMessage.set(this.errorText(error, 'No fue posible verificar el código.'));
     } finally {
@@ -242,10 +241,6 @@ export class LoginPageComponent {
     return challenge.destinationHint;
   }
 
-  private safeReturnUrl(): string {
-    const requested = this.route.snapshot.queryParamMap.get('returnUrl');
-    return requested?.startsWith('/') && !requested.startsWith('//') ? requested : '/registro';
-  }
 
   private startTimer(expiresAt: string): void {
     this.stopTimer();

@@ -9,6 +9,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/presentation/pages/login-page/login-page.component').then(m => m.LoginPageComponent)
   },
   {
+    path: 'menu',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/menu/presentation/pages/menu-page/menu-page.component').then(m => m.MenuPageComponent)
+  },
+  {
     path: 'registro',
     canActivate: [authGuard],
     loadComponent: () => import('./features/registro/presentation/pages/registro-page/registro-page.component').then(m => m.RegistroPageComponent)

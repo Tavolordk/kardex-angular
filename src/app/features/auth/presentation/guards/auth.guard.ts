@@ -13,5 +13,5 @@ export const authGuard: CanActivateFn = (_route, state) => {
 
 export const guestGuard: CanActivateFn = () => {
   const session = inject(GetCurrentSessionUseCase).execute();
-  return session ? inject(Router).createUrlTree(['/registro']) : true;
+  return session ? inject(Router).createUrlTree(['/menu']) : true;
 };

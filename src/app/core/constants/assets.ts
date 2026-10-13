@@ -1,6 +1,7 @@
 export const ASSETS = {
   branding: {
-    seguridad: '/assets/branding/seguridad-sspc.png'
+    seguridad: '/assets/branding/seguridad-sspc.png',
+    seguridadHeader: '/assets/branding/seguridad-sspc-header.png'
   },
   icons: {
     logout: '/assets/icons/logout.svg',

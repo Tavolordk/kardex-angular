@@ -3,5 +3,7 @@
     <span class="section-icon"><img [src]="assets.icons.section" alt="" /></span>
     <div><h2>{{ title() }}</h2><p>{{ subtitle() }}</p></div>
   </div>
-  <div class="badges"><span class="mode">Registro inicial</span><span class="required"><i></i>Campos obligatorios</span></div>
+  @if (showBadges()) {
+    <div class="badges"><span class="mode">Registro inicial</span><span class="required"><i></i>Campos obligatorios</span></div>
+  }
 </section>

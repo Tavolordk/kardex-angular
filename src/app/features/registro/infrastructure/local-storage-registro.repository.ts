@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { EMPTY_REGISTRO_DRAFT, RegistroDraft } from '../domain/models/registro.model';
 import { RegistroRepository } from '../domain/repositories/registro.repository';
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class LocalStorageRegistroRepository extends RegistroRepository {
   private readonly key = 'kardex.registro.draft.v2';
 
@@ -19,7 +19,6 @@ export class LocalStorageRegistroRepository extends RegistroRepository {
   }
 
   async saveDraft(draft: RegistroDraft): Promise<void> {
-    await new Promise(resolve => setTimeout(resolve, 250));
     localStorage.setItem(this.key, JSON.stringify(draft));
   }
 

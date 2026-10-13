@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal, output } from '@angular/core';
 import { CatalogoOption, entidadRnpspId } from '../../../../catalogos/domain/models/catalogo.model';
 import { CatalogosService } from '../../../../catalogos/infrastructure/catalogos.service';
 import { FormsModule } from '@angular/forms';
@@ -17,6 +17,7 @@ interface Arma { tipo: string; licencia: string; fecha: string; vigencia: string
 export class CondicionesLaboralesComponent {
  private readonly catalogos = inject(CatalogosService);
  readonly catalogError = signal('');
+ readonly saveRequested = output<void>();
  readonly entidades = signal<CatalogoOption[]>([]);
  readonly municipiosAdscripcion = signal<CatalogoOption[]>([]);
  readonly jerarquias = signal<CatalogoOption[]>([]);
@@ -88,6 +89,8 @@ export class CondicionesLaboralesComponent {
    try { return JSON.parse(localStorage.getItem('kardex.demo.laboral.' + key) || 'null') ?? fallback; }
    catch { return fallback; }
  }
+ /** Incluye campos ngModel editados aunque el usuario no haya pulsado un guardar local. */
+ captureDraft(): void { this.persist(); }
  private persist(): void {
    try {
      const data: Record<string, unknown> = {adscripciones: this.adscripciones(), armas: this.armas(), jornadas: this.jornadas(), reingresos: this.reingresos(), ingreso: this.ingreso, ingresoRegistrado: this.ingresoRegistrado(), regimen: this.regimen, situacion: this.situacion, fechaCargo: this.fechaCargo, sueldo: this.sueldo, vacaciones: this.vacaciones, numeroNomina: this.numeroNomina, institucionSocial: this.institucionSocial, institucionVivienda: this.institucionVivienda, mecanismoFinanciamiento: this.mecanismoFinanciamiento, tipoVivienda: this.tipoVivienda, numeroSeguridadSocial: this.numeroSeguridadSocial, tipoPrestacion: this.tipoPrestacion, savedAt: this.savedAt()};
@@ -156,7 +159,7 @@ export class CondicionesLaboralesComponent {
   if (this.active() === 'prestaciones' && (!this.institucionSocial.trim() || !this.numeroSeguridadSocial.trim() || !this.tipoPrestacion.trim())) {
     this.feedback.set('Complete institución, número de seguridad social y prestaciones.'); return;
   }
-  const now = new Date().toLocaleString('es-MX'); this.savedAt.set(now); this.persist(); this.feedback.set(`Guardado exitoso (simulación local) · ${now}`);
+  const now = new Date().toLocaleString('es-MX'); this.savedAt.set(now); this.persist(); this.feedback.set('Validado. Enviando borrador al servidor...'); this.saveRequested.emit();
 }
  private emptyAdscripcion():Adscripcion {return {placa:'',institucion:'',dependencia:'',entidad:'',municipio:'',jerarquia:'',estatus:'Activa'};}
  private emptyArma():Arma {return {tipo:'',licencia:'',fecha:'',vigencia:''};}

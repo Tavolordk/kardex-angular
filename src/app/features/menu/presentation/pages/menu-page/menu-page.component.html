@@ -1,0 +1,67 @@
+<div class="menu-shell">
+  <app-institutional-header
+    [displayName]="session?.displayName ?? 'Administrador Kardex'"
+    [role]="session?.role ?? 'Administrador'"
+    (logoutRequested)="logout()"
+  />
+  <div class="menu-layout">
+    <app-sidebar [open]="sidebarOpen()" (toggled)="toggleSidebar()" />
+    @if (sidebarOpen()) {
+      <button class="menu-sidebar-backdrop" type="button" aria-label="Cerrar menú" (click)="closeMobileSidebar()"></button>
+    }
+    <main class="menu-main">
+      <button class="menu-mobile-toggle" type="button" aria-label="Abrir menú de módulos"
+        [attr.aria-expanded]="sidebarOpen()" (click)="toggleSidebar()">
+        <span></span><span></span><span></span>
+      </button>
+      <app-section-header title="Menú navegación" subtitle="Indicadores generales y accesos inteligentes del sistema" [showBadges]="false" />
+      <div class="menu-content">
+        @if (completedMessage()) {
+          <div class="menu-confirmation" role="status">
+            <span aria-hidden="true">✓</span>
+            <p>{{ completedMessage() }} Puedes continuar desde cualquiera de los apartados disponibles.</p>
+            <button type="button" aria-label="Cerrar confirmación" (click)="completedMessage.set('')">×</button>
+          </div>
+        }
+        @if (draftError()) { <p class="menu-draft-alert" role="alert">{{ draftError() }}. Los datos locales no se han eliminado.</p> }
+        @if (borradorId()) {
+          <div class="menu-draft-toolbar" role="status">
+            <span>Borrador del servidor #{{ borradorId() }}</span>
+            <button type="button" [disabled]="deletingDraft()" (click)="discardDraft()">{{ deletingDraft() ? 'Eliminando...' : 'Descartar borrador' }}</button>
+          </div>
+        }
+        <section class="menu-grid" aria-label="Secciones del expediente policial">
+          @for (card of menuCards; track card.title) {
+            <article class="menu-card" [class.menu-card--pending]="!card.section">
+              <h2>{{ card.title }}</h2>
+              <p class="menu-card__description">{{ card.description }}</p>
+              <div class="menu-card__progress">
+                <div class="menu-card__progress-info">
+                  <strong>Progreso</strong>
+                  <span>{{ percent(card.section) }}%</span>
+                </div>
+                <div class="menu-card__track" role="progressbar"
+                  [attr.aria-label]="'Progreso de ' + card.title"
+                  aria-valuemin="0" aria-valuemax="100" [attr.aria-valuenow]="percent(card.section)">
+                  <span [style.width.%]="percent(card.section)"></span>
+                </div>
+              </div>
+              <div class="menu-card__footer">
+                @if (card.section; as section) {
+                  <a class="menu-card__button" [routerLink]="['/registro']" [queryParams]="{ seccion: section }">
+                    {{ card.action === 'Consultar' ? 'Consultar' : (percent(card.section) === 100 ? 'Revisar' : (percent(card.section) > 0 ? 'Continuar' : 'Iniciar')) }}
+                  </a>
+                } @else {
+                  <button class="menu-card__button" type="button" disabled
+                    title="La sección está pendiente de implementación en este proyecto">
+                    {{ card.action }}
+                  </button>
+                }
+              </div>
+            </article>
+          }
+        </section>
+      </div>
+    </main>
+  </div>
+</div>

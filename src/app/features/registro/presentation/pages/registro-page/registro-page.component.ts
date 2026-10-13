@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal, viewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ASSETS } from '../../../../../core/constants/assets';
 import { GetCurrentSessionUseCase } from '../../../../auth/application/get-current-session.use-case';
@@ -9,7 +9,6 @@ import { InstitutionalHeaderComponent } from '../../../../../shared/layout/insti
 import { SidebarComponent } from '../../../../../shared/layout/sidebar/sidebar.component';
 import { SectionHeaderComponent } from '../../../../../shared/ui/section-header/section-header.component';
 import { HelpPanelComponent } from '../../../../../shared/ui/help-panel/help-panel.component';
-import { StepNavigationComponent } from '../../../../../shared/ui/step-navigation/step-navigation.component';
 import { UtilityDockComponent } from '../../../../../shared/ui/utility-dock/utility-dock.component';
 import {
   HelperPanelDockItem,
@@ -21,6 +20,7 @@ import { EMPTY_REGISTRO_DRAFT, RegistroDraft, RegistroStepKey } from '../../../d
 import { RegistroStep, SectionProgress } from '../../../domain/models/registro-step.model';
 import { RegistroRepository } from '../../../domain/repositories/registro.repository';
 import { LocalStorageRegistroRepository } from '../../../infrastructure/local-storage-registro.repository';
+import { HttpRegistroRepository } from '../../../infrastructure/http-registro.repository';
 import { IdentificacionFormComponent } from '../../components/identificacion-form/identificacion-form.component';
 import { OrigenResidenciaFormComponent } from '../../components/origen-residencia-form/origen-residencia-form.component';
 import { ContactoFormComponent } from '../../components/contacto-form/contacto-form.component';
@@ -34,6 +34,8 @@ interface StepPresentation extends RegistroStep {
   formTitle: string;
   description: string;
 }
+
+type SectionKey = 'datos' | 'reclutamiento' | 'condiciones-laborales' | 'control-confianza' | 'certificacion-individual';
 
 const DEFAULT_HELPER_VISIBILITY: HelperPanelVisibility = {
   instructions: true,
@@ -51,7 +53,6 @@ const DEFAULT_HELPER_VISIBILITY: HelperPanelVisibility = {
     SidebarComponent,
     SectionHeaderComponent,
     HelpPanelComponent,
-    StepNavigationComponent,
     UtilityDockComponent,
     IdentificacionFormComponent,
     OrigenResidenciaFormComponent,
@@ -62,7 +63,7 @@ const DEFAULT_HELPER_VISIBILITY: HelperPanelVisibility = {
     ControlConfianzaHistorialComponent,
     CondicionesLaboralesComponent
   ],
-  providers: [RegistroDraftFacade, { provide: RegistroRepository, useClass: LocalStorageRegistroRepository }],
+  providers: [RegistroDraftFacade, LocalStorageRegistroRepository, { provide: RegistroRepository, useClass: HttpRegistroRepository }],
   templateUrl: './registro-page.component.html',
   styleUrl: './registro-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -70,6 +71,7 @@ const DEFAULT_HELPER_VISIBILITY: HelperPanelVisibility = {
 export class RegistroPageComponent implements OnInit {
   private readonly fb = inject(FormBuilder).nonNullable;
   private readonly router = inject(Router);
+  private readonly activatedRoute = inject(ActivatedRoute);
   private readonly signOutUseCase = inject(SignOutUseCase);
   private readonly getSessionUseCase = inject(GetCurrentSessionUseCase);
   private readonly helperStorageKey = 'kardex.helper-panels.v1';
@@ -80,10 +82,23 @@ export class RegistroPageComponent implements OnInit {
   readonly sidebarOpen = signal(typeof window === 'undefined' ? true : window.innerWidth > 900);
   readonly photoError = signal('');
   readonly navigationError = signal('');
+  readonly sectionFinished = signal(false);
+  readonly draftReady = signal(false);
   readonly recruitmentPanel = viewChild(ReclutamientoHistorialComponent);
   readonly conditionsPanel = viewChild(CondicionesLaboralesComponent);
-  readonly activeSection = signal<'datos' | 'reclutamiento' | 'condiciones-laborales' | 'control-confianza' | 'certificacion-individual'>('datos');
+  readonly activeSection = signal<SectionKey>('datos');
+  readonly sections: ReadonlyArray<{ key: SectionKey; label: string }> = [
+    { key: 'datos', label: 'Datos personales' },
+    { key: 'reclutamiento', label: 'Reclutamiento y selección' },
+    { key: 'condiciones-laborales', label: 'Condiciones laborales y prestaciones' },
+    { key: 'control-confianza', label: 'Control de confianza' },
+    { key: 'certificacion-individual', label: 'Certificación individual' }
+  ];
   readonly helperVisibility = signal<HelperPanelVisibility>({ ...DEFAULT_HELPER_VISIBILITY });
+  readonly nextSectionLabel = computed(() => {
+    const index = this.sections.findIndex(section => section.key === this.activeSection());
+    return this.sections[index + 1]?.label ?? '';
+  });
 
   readonly form = this.fb.group({
     curp: ['', [Validators.required, Validators.minLength(18), Validators.maxLength(18)]],
@@ -257,28 +272,50 @@ export class RegistroPageComponent implements OnInit {
     this.restoreHelperVisibility();
     const draft = await this.facade.loadDraft();
     if (draft) this.form.patchValue({ ...EMPTY_REGISTRO_DRAFT, ...draft });
+    // Acceso directo desde las tarjetas del nuevo menú Figma.
+    // Solo admite secciones que ya están implementadas en el proyecto.
+    const requested = this.activatedRoute.snapshot.queryParamMap.get('seccion');
+    const section = this.sections.find(item => item.key === requested);
+    if (section) this.activeSection.set(section.key);
+    // Al volver desde el menú, retomar el primer formulario pendiente sin
+    // presentar otra lista de pasos ni obligar a repetir los ya completados.
+    if (this.activeSection() === 'datos' && draft) {
+      const pending = this.sectionProgress().findIndex(item => item.percentage < 100);
+      if (pending > 0) this.facade.setStep(this.steps[pending].key);
+    }
+    // Los paneles que antes leían localStorage en su constructor se crean DESPUÉS del GET.
+    this.draftReady.set(true);
   }
 
-  private validateCurrentStep(): boolean {
-    if (this.activeSection() !== 'datos') return true;
-    const step = this.facade.activeStep();
-    const fields = [...this.requiredByStep[step]];
+  /** Las tarjetas del menú permiten abrir cada apartado de forma independiente.
+   * Dentro de Datos personales sí se validan los campos antes de pasar al siguiente formulario. */
+  private invalidFields(step: RegistroStepKey): (keyof RegistroDraft)[] {
+    const fields: (keyof RegistroDraft)[] = [...this.requiredByStep[step]];
     if (step === 'identificacion') {
       const nationality = this.form.controls.nacionalidad.value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
       if (nationality && !nationality.includes('MEX')) {
-        fields.splice(fields.indexOf('entidadNacimiento'), 1);
-        fields.splice(fields.indexOf('municipioNacimiento'), 1);
+        for (const field of ['entidadNacimiento', 'municipioNacimiento'] as const) {
+          const index = fields.indexOf(field);
+          if (index !== -1) fields.splice(index, 1);
+        }
       }
       if (this.form.controls.licenciaConducir.value === 'si') {
         fields.push('numeroLicencia', 'documentoLicenciaDataUrl');
       }
     }
     const missing = fields.filter(key => {
-      const ctrl = this.form.get(key);
-      ctrl?.markAsTouched();
-      return !String(ctrl?.value ?? '').trim() || !!ctrl?.invalid;
+      const control = this.form.get(key);
+      const value = control?.value;
+      const empty = Array.isArray(value) ? value.length === 0 : !String(value ?? '').trim();
+      if (empty || control?.invalid) control?.markAsTouched();
+      return empty || !!control?.invalid;
     });
     if (step === 'fotografia' && this.photoError()) missing.push('photoDataUrl');
+    return missing;
+  }
+
+  private validateCurrentStep(): boolean {
+    const missing = this.invalidFields(this.facade.activeStep());
     if (missing.length) {
       this.navigationError.set(`Complete los ${missing.length} campos obligatorios antes de continuar. Revise los campos marcados.`);
       return false;
@@ -287,76 +324,124 @@ export class RegistroPageComponent implements OnInit {
     return true;
   }
 
-  setStep(step: RegistroStepKey): void {
-    if (this.steps.findIndex(x => x.key === step) > this.activeIndex() && !this.validateCurrentStep()) return;
-    this.facade.setStep(step);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-
+  /** No se ofrecen listas de pasos navegables: solamente Anterior y Continuar. */
   previous(): void {
-    if (this.activeSection() === 'certificacion-individual') {
-      this.activeSection.set('control-confianza');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
-    if (this.activeSection() === 'control-confianza') {
-      this.activeSection.set('condiciones-laborales');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
-    if (this.activeSection() === 'condiciones-laborales') {
-      this.activeSection.set('reclutamiento');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
-    if (this.activeSection() === 'reclutamiento') {
-      this.activeSection.set('datos');
-      this.setStep('fotografia');
-      return;
-    }
+    if (this.activeSection() !== 'datos') return;
     const index = this.activeIndex();
-    if (index > 0) this.setStep(this.steps[index - 1].key);
+    if (index > 0) {
+      this.navigationError.set('');
+      this.facade.setStep(this.steps[index - 1].key);
+      this.scrollToTop();
+    }
   }
 
-  next(): void {
-    if (this.activeSection() === 'certificacion-individual') return;
-    if (this.activeSection() === 'control-confianza') {
-      this.activeSection.set('certificacion-individual');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
-    if (this.activeSection() === 'condiciones-laborales') {
-      if (!this.conditionsPanel()?.validateForAdvance()) {
-        this.navigationError.set('Complete la adscripción y las condiciones laborales obligatorias antes de continuar.');
-        return;
-      }
-      this.navigationError.set('');
-      this.activeSection.set('control-confianza');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
-    if (this.activeSection() === 'reclutamiento') {
-      if (!this.recruitmentPanel()?.processes().length) {
-        this.navigationError.set('Agregue al menos un proceso de reclutamiento válido para continuar.');
-        return;
-      }
-      this.navigationError.set('');
-      this.activeSection.set('condiciones-laborales');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
-    const index = this.activeIndex();
-    if (index < this.steps.length - 1) {
-      this.setStep(this.steps[index + 1].key);
+  async next(): Promise<void> {
+    if (this.activeSection() !== 'datos' || this.facade.isSaving()) return;
+    if (this.activeIndex() === this.steps.length - 1) {
+      await this.finishSection();
       return;
     }
     if (!this.validateCurrentStep()) return;
-    this.activeSection.set('reclutamiento');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    await this.saveDraft();
+    if (this.facade.saveState() !== 'saved') {
+      this.navigationError.set('No se pudo guardar el avance. Inténtelo de nuevo antes de continuar.');
+      return;
+    }
+    this.facade.setStep(this.steps[this.activeIndex() + 1].key);
+    this.navigationError.set('');
+    this.scrollToTop();
   }
 
+  /** Confirma el fin del apartado sin abrir automáticamente otro formulario.
+   * Los historiales ECCC y de certificación son de consulta; no se marcan
+   * artificialmente como completos. */
+  async finishSection(): Promise<void> {
+    if (this.facade.isSaving()) return;
+    this.navigationError.set('');
+    const section = this.activeSection();
+    if (section === 'datos') {
+      for (const step of this.steps) {
+        const missing = this.invalidFields(step.key);
+        if (missing.length) {
+          this.facade.setStep(step.key);
+          this.navigationError.set(`Faltan ${missing.length} campos obligatorios en ${step.title}. Complete los campos marcados.`);
+          this.scrollToTop();
+          return;
+        }
+      }
+      await this.saveDraft();
+      if (this.facade.saveState() !== 'saved') {
+        this.navigationError.set('No fue posible guardar Datos personales. Vuelva a intentarlo.');
+        return;
+      }
+    } else if (section === 'reclutamiento') {
+      if (!this.recruitmentPanel()?.processes().length) {
+        this.navigationError.set('Agregue al menos un proceso de reclutamiento válido para finalizar este apartado.');
+        return;
+      }
+    } else if (section === 'condiciones-laborales') {
+      if (!this.conditionsPanel()?.validateForAdvance()) {
+        this.navigationError.set('Complete la adscripción y las condiciones laborales obligatorias antes de finalizar.');
+        return;
+      }
+    } else {
+      return;
+    }
+    if (section !== 'datos') {
+      await this.saveDraft();
+      if (this.facade.saveState() !== 'saved') {
+        this.navigationError.set('El apartado está completo, pero el servidor no confirmó el guardado. Inténtelo nuevamente.');
+        return;
+      }
+    }
+    this.sectionFinished.set(true);
+    this.scrollToTop();
+  }
+
+  /** La navegación entre apartados se ofrece únicamente tras la confirmación,
+   * o para consultar certificación desde Control de confianza. */
+  continueToNext(): void {
+    const current = this.sections.findIndex(section => section.key === this.activeSection());
+    const nextSection = this.sections[current + 1];
+    if (!nextSection) {
+      void this.goToMenu();
+      return;
+    }
+    this.sectionFinished.set(false);
+    this.navigationError.set('');
+    this.activeSection.set(nextSection.key);
+    void this.router.navigate([], {
+      relativeTo: this.activatedRoute,
+      queryParams: { seccion: nextSection.key },
+      queryParamsHandling: 'merge',
+      replaceUrl: true
+    });
+    this.scrollToTop();
+  }
+
+  /** Si se regresa desde Datos personales, conserva también el borrador parcial. */
+  async goToMenu(): Promise<void> {
+    if (this.facade.isSaving()) return;
+    if (['datos', 'reclutamiento', 'condiciones-laborales'].includes(this.activeSection()) && !this.sectionFinished()) {
+      await this.saveDraft();
+      if (this.facade.saveState() !== 'saved') {
+        this.navigationError.set('No fue posible guardar el borrador. Inténtelo nuevamente antes de salir.');
+        return;
+      }
+    }
+    const completed = this.sectionFinished() ? this.activeSection() : null;
+    await this.router.navigate(['/menu'], {
+      queryParams: completed ? { completada: completed } : undefined
+    });
+  }
+
+  private scrollToTop(): void {
+    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 
   async saveDraft(): Promise<void> {
+    if (this.facade.isSaving()) return;
+    if (this.activeSection() === 'condiciones-laborales') this.conditionsPanel()?.captureDraft();
     // El correo es la única excepción a la captura en mayúsculas.
     // Se normaliza nuevamente al persistir para no depender solo de la UI.
     const correoControl = this.form.controls.correo;
@@ -370,7 +455,9 @@ export class RegistroPageComponent implements OnInit {
       { emitEvent: false }
     );
 
-    await this.facade.saveDraft(this.form.getRawValue() as RegistroDraft);
+    const section = this.activeSection() === 'reclutamiento' ? 'reclutamientoSeleccion'
+      : this.activeSection() === 'condiciones-laborales' ? 'condicionesLaborales' : 'datosPersonales';
+    await this.facade.saveDraft(this.form.getRawValue() as RegistroDraft, section);
   }
 
   toggleSidebar(): void {

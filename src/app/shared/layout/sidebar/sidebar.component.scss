@@ -188,3 +188,11 @@ nav {
     font-size: clamp(12px, 1vw, 13.5px);
   }
 }
+
+.menu-item { text-decoration: none; }
+.menu-item:focus-visible { outline: 2px solid #fff; outline-offset: -2px; }
+
+/* Figma 731:679: las opciones que no cuentan con ruta se muestran sin navegación. */
+.menu-item--disabled { cursor: not-allowed; opacity: .72; }
+.menu-item--disabled:hover { background: transparent; }
+.sidebar nav { min-height: 0; overflow-y: auto; }

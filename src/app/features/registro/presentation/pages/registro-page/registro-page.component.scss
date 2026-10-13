@@ -879,3 +879,176 @@
 
 /* Formularios dinámicos: su altura crece con contactos, modales internos y fotografía responsive. */
 .registration-card--contact,.registration-card--photo{height:auto!important;min-height:0!important}.registration-card--contact .card-content,.registration-card--photo .card-content{height:auto!important;min-height:0!important}.registration-card--contact .form-body,.registration-card--photo .form-body{height:auto!important;min-height:0!important}.registration-card--contact .card-actions,.registration-card--photo .card-actions{height:auto!important;min-height:63px}
+
+
+/* 2026-10-13: navegación sin carrusel y tarjeta laboral de altura dinámica.
+   La captura laboral jamás debe heredar el alto fijo de certificación. */
+.form-zone { display: block; width: 100%; min-width: 0; }
+.registration-stack { width: 100%; min-width: 0; }
+.registration-card--conditions {
+  display: block;
+  width: 100%;
+  max-width: none;
+  height: auto;
+  min-height: clamp(560px, calc(100dvh - 265px), 900px);
+  overflow: visible;
+}
+.registration-card--conditions > app-condiciones-laborales {
+  display: block;
+  min-width: 0;
+  width: 100%;
+}
+/* La zona de trabajo crece y permite que el documento tenga un único scroll vertical. */
+.workspace, .page-content, .form-zone, .registration-stack {
+  height: auto;
+  max-height: none;
+}
+.section-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+  margin-bottom: 10px;
+}
+.section-actions button {
+  min-height: 44px;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font: 700 13px var(--font-body);
+  cursor: pointer;
+}
+.section-actions__back { background: #fff; color: #6c1837; border: 1px solid #b7a2ab; }
+.section-actions__forward { background: #6c1837; color: #fff; border: 1px solid #6c1837; margin-left: auto; }
+.section-actions button:disabled { opacity: .42; cursor: not-allowed; }
+@media (max-width: 900px) {
+  .registration-card--conditions { min-height: 0; }
+  .section-actions { margin-inline: 4px; }
+}
+@media (max-width: 540px) {
+  .section-actions button { flex: 1 1 140px; }
+}
+
+/* Acceso de regreso al tablero de navegación del Figma 731:658. */
+.registration-back-link { padding: 8px 30px 0; }
+.registration-back-link button { padding: 6px 0; border: 0; background: transparent; color: #5d6b7e; font: 700 12px var(--font-body); cursor: pointer; }
+.registration-back-link button:hover, .registration-back-link button:focus-visible { text-decoration: underline; }
+@media(max-width: 900px) { .registration-back-link { padding-left: 56px; } }
+
+/* UX: sin StepForm navegable. Solo contexto de avance, guardado y elección al finalizar. */
+.current-step-indicator {
+  padding: 17px clamp(16px, 2.4vw, 24px) 13px;
+  border-bottom: 1px solid rgba(114,129,150,.14);
+  background: rgba(255,255,255,.34);
+}
+.current-step-indicator__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+  color: #4c5561;
+  font: 700 12px/1.4 var(--font-body);
+}
+.current-step-indicator__head strong { color: #2c3440; font: 800 12px var(--font-heading); white-space: nowrap; }
+.current-step-indicator__track {
+  display: block;
+  overflow: hidden;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(114,129,150,.17);
+}
+.current-step-indicator__track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #5d6b7e, #8798ad);
+  transition: width .2s ease;
+}
+/* Formularios sin una altura sobrante por el antiguo stepper */
+.registration-card--identification,
+.registration-card--contact,
+.registration-card--photo {
+  height: auto !important;
+  min-height: 0 !important;
+  overflow: visible;
+}
+.registration-card--identification .card-content,
+.registration-card--identification .form-body,
+.registration-card--contact .card-content,
+.registration-card--contact .form-body,
+.registration-card--photo .card-content,
+.registration-card--photo .form-body {
+  height: auto !important;
+  min-height: 0 !important;
+}
+.registration-card--identification .card-actions,
+.registration-card--contact .card-actions,
+.registration-card--photo .card-actions {
+  height: auto !important;
+  min-height: 63px;
+}
+.section-actions { max-width: 1174px; }
+.section-actions button:focus-visible,
+.registration-back-link button:focus-visible,
+.section-completion button:focus-visible { outline: 3px solid #8193a9; outline-offset: 3px; }
+.section-actions__back { border: 1px solid #c2cad5; color: #4c5561; }
+.section-actions__forward { border: 1px solid #5d6b7e; background: linear-gradient(100deg, #5d6b7e, #8798ad); }
+.section-completion {
+  width: min(720px, calc(100% - 48px));
+  box-sizing: border-box;
+  margin: clamp(35px, 7vh, 90px) auto;
+  padding: clamp(28px, 5vw, 52px);
+  border: 1px solid rgba(255,255,255,.8);
+  border-radius: 26px;
+  background: linear-gradient(145deg,rgba(255,255,255,.96),rgba(240,242,245,.87));
+  box-shadow: 0 20px 65px rgba(27,34,43,.12), inset 0 1px rgba(255,255,255,.9);
+  text-align: center;
+}
+.section-completion__symbol {
+  display: grid;
+  place-items: center;
+  width: 62px;
+  height: 62px;
+  margin: 0 auto 20px;
+  border-radius: 50%;
+  background: #e1eee9;
+  color: #28664e;
+  font: 800 31px/1 var(--font-heading);
+}
+.section-completion__eyebrow {
+  display: inline-block;
+  color: #5d6b7e;
+  font: 800 12px var(--font-heading);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.section-completion h2 { margin: 10px 0 12px; color: #1b222b; font: 800 clamp(22px,3vw,30px)/1.2 var(--font-heading); }
+.section-completion p {
+  max-width: 520px;
+  margin: 0 auto 28px;
+  color: #4c5561;
+  font: 500 14px/1.7 var(--font-body);
+}
+.section-completion__actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+.section-completion__actions button {
+  min-height: 46px;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font: 700 13px/1.4 var(--font-body);
+  cursor: pointer;
+}
+.section-completion__primary { border: 1px solid #5d6b7e; color: white; background: linear-gradient(100deg,#5d6b7e,#8798ad); }
+.section-completion__secondary { border: 1px solid #c2cad5; color: #455163; background: #fff; }
+.section-completion__actions button:hover { filter: brightness(.96); }
+@media(max-width:620px) {
+  .current-step-indicator { padding-inline: 14px; }
+  .section-completion { width: calc(100% - 24px); margin-block: 24px; padding: 26px 18px; border-radius: 18px; }
+  .section-completion__actions { display: grid; }
+  .section-completion__actions button { width: 100%; }
+  .section-actions button { flex: 1 1 150px; }
+}
+
+.registration-loading {padding:24px; text-align:center; color:#475569; }
+
+.draft-file-note { font-size:12px; line-height:1.45; color:#80562c; padding:8px 16px; }
