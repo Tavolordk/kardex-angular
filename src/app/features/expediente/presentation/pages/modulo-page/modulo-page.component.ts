@@ -170,8 +170,8 @@ export class ModuloPageComponent implements OnDestroy {
       }
       if (field.type === 'date' && val < MIN_YEAR) errors.push(group.key + '.' + field.key);
     }
-    const pairs = [['inicio', 'termino'], ['ingreso', 'egreso'], ['fechaInicio', 'nombramiento'], ['inicio', 'fin']];
-    for (const [start, end] of pairs) if (values[start] && values[end] && values[end] < values[start]) errors.push(group.key + '.' + end);
+    const pairs = [['inicio','termino'],['ingreso','egreso'],['fechaInicio','nombramiento'],['inicio','fin']];
+    for (const [start,end] of pairs) if (values[start] && values[end] && values[end] < values[start]) errors.push(group.key + '.' + end);
     return [...new Set(errors)];
   }
 
@@ -191,36 +191,36 @@ export class ModuloPageComponent implements OnDestroy {
     this.editId.set(row?.id ?? null);
     this.modalValue.set({ ...(row?.values || {}) });
     this.modalDocumentNames.set(row?.documentNames || []);
-    this.invalidFields.set([]); this.error.set(''); this.notice.set('');
+    this.invalidFields.set([]);this.error.set('');this.notice.set('');
     if (typeof document !== 'undefined') document.body.style.overflow = 'hidden';
   }
   closeModal(): void {
-    this.modalGroup.set(null); this.editId.set(null); this.modalValue.set({}); this.modalDocumentNames.set([]); this.invalidFields.set([]);
+    this.modalGroup.set(null);this.editId.set(null);this.modalValue.set({});this.modalDocumentNames.set([]);this.invalidFields.set([]);
     if (typeof document !== 'undefined') document.body.style.overflow = '';
   }
-  onModalField(key: string, value: string): void { this.modalValue.update(prev => ({ ...prev, [key]: value })); this.invalidFields.set(this.invalidFields().filter(item => item !== this.modalGroup() + '.' + key)); }
+  onModalField(key: string,value: string): void { this.modalValue.update(prev => ({...prev,[key]:value}));this.invalidFields.set(this.invalidFields().filter(item => item !== this.modalGroup() + '.' + key)); }
   submitModal(): void {
     const group = this.selectedGroup();
     if (!group) return;
     const values = this.modalValue();
-    this.addRecord(group, values, this.editId(), this.modalDocumentNames());
+    this.addRecord(group,values,this.editId(),this.modalDocumentNames());
   }
-  private addRecord(group: GroupConfig, values: Record<string, string>, id: string | null, documentNames: string[] = []): void {
-    const errors = this.validationErrors(group, values);
+  private addRecord(group: GroupConfig,values: Record<string,string>, id: string|null, documentNames: string[] = []): void {
+    const errors = this.validationErrors(group,values);
     this.invalidFields.set(errors);
     if (errors.length) { this.error.set('Complete los campos obligatorios y verifique los valores resaltados.'); return; }
     if (group.key === 'idiomas' && !this.hasValue(values['lengua']) && !this.hasValue(values['idioma'])) {
-      this.error.set('Indique por lo menos una lengua nacional o un idioma extranjero.'); return;
+      this.error.set('Indique por lo menos una lengua nacional o un idioma extranjero.');return;
     }
     const current = this.state();
     const existing = current.records[group.key] || [];
     const entry: RecordEntry = { id: id ?? this.newId(), values: { ...values }, documentNames };
-    const records = id ? existing.map(record => record.id === id ? entry : record) : [...existing, entry];
+    const records = id ? existing.map(record => record.id === id ? entry : record) : [ ...existing, entry ];
     this.persist({ ...current, records: { ...current.records, [group.key]: records }, forms: { ...current.forms, [group.key]: {} }, completed: { ...current.completed, [group.key]: true } }, true);
     this.error.set('');
     if (this.modalGroup()) this.closeModal();
   }
-  deleteRecord(group: GroupConfig, record: RecordEntry): void {
+  deleteRecord(group: GroupConfig,record: RecordEntry): void {
     if (typeof window !== 'undefined' && !window.confirm('¿Eliminar este registro de ' + group.label + '?')) return;
     const current = this.state();
     const records = (current.records[group.key] || []).filter(row => row.id !== record.id);
@@ -229,11 +229,11 @@ export class ModuloPageComponent implements OnDestroy {
   entries(group: GroupConfig): readonly RecordEntry[] { return this.state().records[group.key] || []; }
   valueLabel(value: string | undefined): string {
     if (!value) return '—';
-    if (value === 'si') return 'Sí'; if (value === 'no') return 'No';
-    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) { const [year, month, day] = value.split('-'); return `${day}/${month}/${year}`; }
+    if (value === 'si') return 'Sí'; if(value === 'no') return 'No';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) { const [year,month,day] = value.split('-'); return `${day}/${month}/${year}`; }
     return value;
   }
-  nameFor(group: GroupConfig, key: string): string { return group.fields.find(field => field.key === key)?.label || key; }
+  nameFor(group: GroupConfig,key: string): string { return group.fields.find(field => field.key === key)?.label || key; }
   showInitialInline(group: GroupConfig): boolean {
     return group.repeatable === true && this.entries(group).length === 0 && ((this.modulo().key === 'formacion-academica' && group.key !== 'idiomas') || this.modulo().key === 'estimulos' || this.modulo().key === 'separacion');
   }
@@ -242,7 +242,7 @@ export class ModuloPageComponent implements OnDestroy {
   closeMobileSidebar(): void { if (typeof window !== 'undefined' && window.innerWidth <= 900) this.sidebarOpen.set(false); }
   toggleHelp(): void { this.showHelp.update(v => !v); }
   goToMenu(): void { void this.router.navigate(['/menu']); }
-  saveDraft(): void { this.persist(this.state(), true); this.error.set(''); }
+  saveDraft(): void { this.persist(this.state(),true); this.error.set(''); }
   clearLocalCapture(): void {
     if (typeof window !== 'undefined' && !window.confirm('¿Borrar la captura local de este módulo? Esta acción no se puede deshacer.')) return;
     try { this.storage?.removeItem(this.moduleStorageKey(this.modulo().key)); } catch { /* almacenamiento restringido */ }
@@ -253,31 +253,31 @@ export class ModuloPageComponent implements OnDestroy {
 
   fileCount(bucket: string): number { return this.fileSelections()[bucket]?.length || 0; }
   fileList(bucket: string): readonly FileSelection[] { return this.fileSelections()[bucket] || []; }
-  async onFileInput(event: Event, bucket: string, modal = false): Promise<void> {
+  async onFileInput(event: Event,bucket: string,modal = false): Promise<void> {
     const input = event.target as HTMLInputElement;
     const incoming = Array.from(input.files || []);
     input.value = '';
     for (const file of incoming) {
-      if (!['application/pdf', 'image/jpeg'].includes(file.type) || file.size > 5 * 1024 * 1024) {
-        this.error.set('Sólo se permiten PDF o JPG de hasta 5 MB por archivo.'); continue;
+      if (!['application/pdf','image/jpeg'].includes(file.type) || file.size > 5 * 1024 * 1024) {
+        this.error.set('Sólo se permiten PDF o JPG de hasta 5 MB por archivo.');continue;
       }
       const id = this.newId();
-      this.volatileFiles.set(id, file);
+      this.volatileFiles.set(id,file);
       if (modal) this.modalDocumentNames.update(names => [...names, file.name]);
-      else this.fileSelections.update(current => ({ ...current, [bucket]: [...(current[bucket] || []), { id, name: file.name, size: file.size, type: file.type }] }));
+      else this.fileSelections.update(current => ({...current,[bucket]:[...(current[bucket] || []),{id,name:file.name,size:file.size,type:file.type}]}));
       this.notice.set('Archivo preparado únicamente durante esta sesión. Para conservarlo es necesario integrar la API de documentos.');
       this.error.set('');
     }
   }
-  removeFile(bucket: string, id: string): void { this.volatileFiles.delete(id); this.fileSelections.update(current => ({ ...current, [bucket]: (current[bucket] || []).filter(f => f.id !== id) })); }
-  removeModalFile(index: number): void { this.modalDocumentNames.update(names => names.filter((_, i) => i !== index)); }
-  openFile(id: string): void {
-    const file = this.volatileFiles.get(id);
-    if (!file) { this.error.set('El archivo ya no está disponible. Vuelva a seleccionarlo para visualizarlo.'); return; }
-    const url = URL.createObjectURL(file); window.open(url, '_blank', 'noopener,noreferrer');
-    window.setTimeout(() => URL.revokeObjectURL(url), 30000);
+  removeFile(bucket:string,id:string):void { this.volatileFiles.delete(id);this.fileSelections.update(current => ({...current,[bucket]:(current[bucket] || []).filter(f => f.id !== id)})); }
+  removeModalFile(index:number):void { this.modalDocumentNames.update(names => names.filter((_,i) => i !== index)); }
+  openFile(id:string):void {
+    const file=this.volatileFiles.get(id);
+    if(!file){ this.error.set('El archivo ya no está disponible. Vuelva a seleccionarlo para visualizarlo.'); return; }
+    const url=URL.createObjectURL(file);window.open(url,'_blank','noopener,noreferrer');
+    window.setTimeout(()=>URL.revokeObjectURL(url),30000);
   }
-  formatFileSize(size: number): string { return (size / (1024 * 1024)).toFixed(1) + ' MB'; }
-  nextTab(): void { const idx = this.modulo().groups.findIndex(group => group.key === this.activeTab()); const next = this.modulo().groups[idx + 1]; if (next) this.tabClick(next); else this.goToMenu(); }
-  private newId(): string { return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`; }
+  formatFileSize(size:number):string { return (size / (1024 * 1024)).toFixed(1) + ' MB'; }
+  nextTab():void { const idx=this.modulo().groups.findIndex(group => group.key===this.activeTab());const next=this.modulo().groups[idx+1]; if (next) this.tabClick(next); else this.goToMenu(); }
+  private newId():string { return `${Date.now()}-${Math.random().toString(36).slice(2,9)}`; }
 }

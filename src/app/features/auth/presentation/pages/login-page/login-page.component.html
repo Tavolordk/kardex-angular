@@ -36,21 +36,30 @@
       </div>
 
       @if (step() === 'credentials') {
-        <form class="credentials-form" [formGroup]="credentialsForm" (ngSubmit)="submitCredentials()" novalidate>
+        <form #credentialsFormElement class="credentials-form" [formGroup]="credentialsForm" (ngSubmit)="submitCredentials()" novalidate>
+          @if (errorMessage()) {
+            <div #authAlert class="form-alert" role="alert" tabindex="-1"><span class="form-alert-icon" aria-hidden="true">!</span><p>{{ errorMessage() }}</p></div>
+          }
           <div class="credentials-identity-row">
             <div class="field-group">
               <label for="email">Correo electrónico</label>
               <div class="field-shell" [class.invalid]="credentialsForm.controls.email.touched && credentialsForm.controls.email.invalid">
                 <span class="field-icon"><img [src]="assets.icons.mail" alt="" /></span>
-                <input appInputCase id="email" type="email" formControlName="email" autocomplete="username" placeholder="Ingresa tu correo electrónico" />
+                <input appInputCase id="email" type="email" formControlName="email" autocomplete="username" placeholder="Ingresa tu correo electrónico" [attr.aria-invalid]="credentialsForm.controls.email.touched && credentialsForm.controls.email.invalid" aria-describedby="email-error" />
               </div>
+              @if (credentialsForm.controls.email.touched && credentialsForm.controls.email.invalid) {
+                <p class="field-error" id="email-error">{{ credentialsForm.controls.email.hasError('required') ? 'Ingresa tu correo electrónico.' : 'Ingresa un correo electrónico válido.' }}</p>
+              }
             </div>
             <div class="field-group">
               <label for="phone">Número de celular</label>
               <div class="field-shell" [class.invalid]="credentialsForm.controls.phone.touched && credentialsForm.controls.phone.invalid">
                 <span class="field-icon"><img [src]="assets.icons.phone" alt="" /></span>
-                <input appInputCase id="phone" type="tel" inputmode="numeric" maxlength="10" formControlName="phone" autocomplete="tel" placeholder="5567890678" />
+                <input appInputCase id="phone" type="tel" inputmode="numeric" maxlength="10" formControlName="phone" autocomplete="tel" placeholder="5567890678" [attr.aria-invalid]="credentialsForm.controls.phone.touched && credentialsForm.controls.phone.invalid" aria-describedby="phone-error" />
               </div>
+              @if (credentialsForm.controls.phone.touched && credentialsForm.controls.phone.invalid) {
+                <p class="field-error" id="phone-error">{{ credentialsForm.controls.phone.hasError('required') ? 'Ingresa tu número de celular.' : 'El número debe contener exactamente 10 dígitos.' }}</p>
+              }
             </div>
           </div>
 
@@ -89,13 +98,12 @@
             </div>
             <div class="field-shell captcha-input" [class.invalid]="credentialsForm.controls.captcha.touched && credentialsForm.controls.captcha.invalid">
               <span class="field-icon"><img [src]="assets.icons.shield" alt="" /></span>
-              <input appInputCase id="captcha" type="text" inputmode="text" minlength="5" maxlength="5" pattern="[A-Za-z0-9]{5}" formControlName="captcha" autocomplete="off" placeholder="Ingresa el código captcha" />
+              <input appInputCase id="captcha" type="text" inputmode="text" minlength="5" maxlength="5" pattern="[A-Za-z0-9]{5}" formControlName="captcha" autocomplete="off" placeholder="Ingresa el código captcha" [attr.aria-invalid]="credentialsForm.controls.captcha.touched && credentialsForm.controls.captcha.invalid" aria-describedby="captcha-error" />
             </div>
+            @if (credentialsForm.controls.captcha.touched && credentialsForm.controls.captcha.invalid) {
+              <p class="field-error" id="captcha-error">{{ credentialsForm.controls.captcha.hasError('required') ? 'Ingresa el captcha.' : 'El captcha debe contener 5 caracteres válidos y coincidir con la imagen.' }}</p>
+            }
           </div>
-
-          @if (errorMessage()) {
-            <p class="form-error" role="alert">{{ errorMessage() }}</p>
-          }
 
           <button class="continue-button" type="submit" [disabled]="busy() || captchaLoading()">
             <span>{{ busy() ? 'Validando...' : 'Continuar' }}</span>
@@ -103,12 +111,18 @@
           </button>
         </form>
       } @else {
-        <form class="verification-form" [formGroup]="verificationForm" (ngSubmit)="submitVerification()" novalidate>
-          <section class="verification-notice">
+        <form #verificationFormElement class="verification-form" [formGroup]="verificationForm" (ngSubmit)="submitVerification()" novalidate>
+          @if (errorMessage()) {
+            <div #authAlert class="form-alert" role="alert" tabindex="-1"><span class="form-alert-icon" aria-hidden="true">!</span><p>{{ errorMessage() }}</p></div>
+          }
+          <section class="verification-notice" aria-label="Destino del código de verificación">
             <span class="notice-icon"><img [src]="assets.icons.shield" alt="" /></span>
             <div class="notice-copy">
               <strong>Código enviado</strong>
-              <span>Enviamos un código de un solo uso a {{ destinationText() }}. El código es personal, temporal y no debe compartirse.</span>
+              <span class="notice-message">Enviamos un código de un solo uso a <strong class="destination-hint">{{ destinationText() }}</strong>. El código es personal, temporal y no debe compartirse.</span>
+              @if (resendSuccess()) {
+                <p class="notice-resend" role="status">{{ resendSuccess() }}</p>
+              }
             </div>
           </section>
 
@@ -121,20 +135,22 @@
                 autocomplete="one-time-code"
                 maxlength="1"
                 [formControlName]="controlName"
+                [class.invalid]="verificationForm.controls[controlName].touched && verificationForm.controls[controlName].invalid"
+                [attr.aria-invalid]="verificationForm.controls[controlName].touched && verificationForm.controls[controlName].invalid"
                 [attr.aria-label]="'Dígito ' + (index + 1)"
                 (input)="onCodeInput(index, $event)"
                 (keydown)="onCodeKeydown(index, $event)"
+                (paste)="onCodePaste(index, $event)"
               />
             }
           </div>
 
-          <p class="verification-copy">Si no recibiste el código, revisa tu bandeja de correo no deseado o solicita un nuevo envío.</p>
-          <div class="timer-row"><span class="timer-chip">Vigencia del código {{ formatTimer() }}</span></div>
-          <div class="resend-row"><button class="resend-button" type="button" [disabled]="busy()" (click)="resendCode()">Reenviar código</button></div>
-
-          @if (errorMessage()) {
-            <p class="form-error verification-error" role="alert">{{ errorMessage() }}</p>
+          @if (verificationForm.touched && verificationForm.invalid) {
+            <p class="field-error" role="status">Ingresa los seis dígitos del código de verificación.</p>
           }
+          <p class="verification-copy">Si no recibiste el código, revisa tu bandeja de correo no deseado o solicita un nuevo envío.</p>
+          <div class="timer-row"><span class="timer-chip" [class.expired]="secondsRemaining() === 0">{{ secondsRemaining() === 0 ? 'El código ha expirado. Solicita uno nuevo.' : 'Vigencia del código ' + formatTimer() }}</span></div>
+          <div class="resend-row"><button class="resend-button" type="button" [disabled]="busy()" (click)="resendCode()">Reenviar código</button></div>
 
           <button class="continue-button" type="submit" [disabled]="busy() || secondsRemaining() === 0">
             <span>{{ busy() ? 'Verificando...' : 'Continuar' }}</span>
