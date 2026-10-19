@@ -501,6 +501,7 @@ export class RegistroPageComponent implements OnInit {
 
   async logout(): Promise<void> {
     try {
+      if (typeof window !== 'undefined') window.sessionStorage.removeItem('kardex.modulos.v1.' + encodeURIComponent(this.session?.userId || 'invitado') + '.salud');
       await this.signOutUseCase.execute();
     } finally {
       await this.router.navigate(['/login']);

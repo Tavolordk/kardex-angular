@@ -1,0 +1,211 @@
+<div class="exp-shell">
+  <app-institutional-header
+    [displayName]="session?.displayName ?? 'Administrador Kardex'"
+    [role]="session?.role ?? 'Administrador'"
+    (logoutRequested)="logout()" />
+  <div class="exp-layout">
+    <app-sidebar [open]="sidebarOpen()" (toggled)="toggleSidebar()" />
+    @if (sidebarOpen()) { <button class="exp-backdrop" type="button" aria-label="Cerrar menú" (click)="closeMobileSidebar()"></button> }
+    <main class="exp-main">
+      <button class="exp-mobile" type="button" aria-label="Abrir menú principal" (click)="toggleSidebar()">☰</button>
+      <app-section-header [title]="modulo().title" [subtitle]="modulo().subtitle" [showBadges]="false" />
+      <div class="exp-back"><button type="button" (click)="goToMenu()">‹ Volver al menú de navegación</button></div>
+      <div class="exp-columns" [class.exp-columns--compact]="!showHelp()">
+        @if (showHelp()) {
+          <aside class="exp-help" aria-label="Información del registro">
+            <section class="exp-help-card">
+              <button class="exp-help-close" type="button" (click)="toggleHelp()" aria-label="Ocultar panel de ayuda">×</button>
+              <h3>Instrucciones</h3>
+              <p><b>1</b> Puedes navegar entre apartados. Al registrar se validarán los campos obligatorios.</p>
+              <p><b>2</b> Puedes guardar tu progreso como borrador en cualquier momento.</p>
+            </section>
+            <section class="exp-help-card">
+              <h3>Progreso por sección</h3>
+              @for (group of modulo().groups; track group.key) {
+                <div class="exp-meter-label"><span>{{ group.label }}</span><span>{{ groupProgress(group) }}%</span></div>
+                <div class="exp-meter"><span [style.width.%]="groupProgress(group)"></span></div>
+              }
+            </section>
+            <section class="exp-help-card">
+              <h3>Progreso general</h3>
+              <div class="exp-meter-label"><span>Comienzo del registro</span><strong>{{ totalProgress() }}%</strong></div>
+              <div class="exp-meter"><span [style.width.%]="totalProgress()"></span></div>
+            </section>
+            <section class="exp-help-card exp-recommendation"><h3>Recomendación</h3><p>{{ modulo().recommendation }}</p></section>
+          </aside>
+        } @else { <button class="exp-show-help" type="button" (click)="toggleHelp()">Mostrar ayuda y progreso</button> }
+        <div class="exp-work">
+          @if (notice()) { <div class="exp-alert exp-alert--success" role="status">{{ notice() }} <button type="button" aria-label="Cerrar aviso" (click)="notice.set('')">×</button></div> }
+          @if (error() && !modalGroup()) { <div class="exp-alert exp-alert--error" role="alert">{{ error() }}</div> }
+          @if (storedInSession()) {
+            <p class="exp-privacy" role="note">Datos sensibles: el avance de este módulo se conserva solo durante la sesión de este navegador. Aún no existe integración para enviarlo al servidor.</p>
+          }
+          <article class="exp-card">
+            @if (hasTabs()) {
+              <nav class="exp-tabs" aria-label="Apartados del módulo">
+                @for (group of modulo().groups; track group.key; let index = $index) {
+                  @if (modulo().key !== 'salud' || group.key !== 'senas') {
+                    <button type="button" class="exp-tab"
+                      [class.exp-tab--active]="activeTab() === group.key || (modulo().key === 'salud' && activeTab() === 'fisico' && group.key === 'fisico')"
+                      [attr.aria-current]="activeTab() === group.key ? 'step' : null"
+                      (click)="tabClick(group)">
+                      <span class="exp-tab__number">{{ index + 1 }}</span>
+                      <span>{{ group.label }}<small>{{ groupProgress(group) === 100 ? 'Completo' : groupProgress(group) > 0 ? 'En captura' : 'Disponible' }}</small></span>
+                    </button>
+                  }
+                }
+              </nav>
+            }
+            <div class="exp-card-content">
+              <div class="exp-card-head">
+                <div><h2>{{ modulo().key === 'formacion-academica' ? 'Formación académica' : (modulo().key === 'estimulos' ? 'Servicio Profesional de Carrera (Estímulos/reconocimientos)' : modulo().key === 'separacion' ? 'Servicio Profesional de Carrera (Separación del cargo)' : activeTab() === 'fisico' ? 'Perfil físico' : currentGroup()?.label) }}</h2>
+                  <p>{{ modulo().subtitle }}</p></div>
+                <span class="exp-status">{{ totalProgress() === 100 ? 'Completo' : 'En captura' }}</span>
+              </div>
+              @for (group of visibleGroups(); track group.key) {
+                <section class="exp-group" [class.exp-group--success]="groupProgress(group) === 100" [attr.aria-label]="group.label">
+                  <header class="exp-group-heading">
+                    <div><h3>{{ group.label }}</h3><p>{{ group.description }}</p></div>
+                    @if (group.repeatable && !showInitialInline(group)) {
+                      <button type="button" class="exp-primary exp-primary--small" (click)="openModal(group)">+ {{ group.button || 'Agregar registro' }}</button>
+                    }
+                  </header>
+                  @if (group.documents && !group.fields.length) {
+                    @for (bucket of documentBuckets; track bucket; let i = $index) {
+                      <div class="exp-upload-block">
+                        <h4>{{ i === 0 ? 'Documentos de formación inicial' : 'Documentos de formación continua' }}</h4>
+                        <span class="exp-required">Documento probatorio</span>
+                        <label class="exp-dropzone">+ Cargar archivo <small>PDF o JPG, máx. 5 MB</small>
+                          <input type="file" accept=".pdf,.jpg,.jpeg,application/pdf,image/jpeg" multiple (change)="onFileInput($event,bucket)" />
+                        </label>
+                        <div class="exp-files">
+                          @for (file of fileList(bucket); track file.id) {
+                            <div class="exp-file"><span>▤ {{ file.name }} <small>{{ formatFileSize(file.size) }}</small></span>
+                              <div><button type="button" (click)="openFile(file.id)" [attr.aria-label]="'Ver '+file.name">Ver</button>
+                                <button type="button" (click)="removeFile(bucket,file.id)" [attr.aria-label]="'Eliminar '+file.name">Eliminar</button></div>
+                            </div>
+                          }
+                        </div>
+                      </div>
+                    }
+                    <p class="exp-footnote">Los archivos solo están disponibles mientras permanezca abierta esta página. Para guardarlos permanentemente se requiere un servicio de carga de documentos.</p>
+                  } @else {
+                    @if (!group.repeatable || showInitialInline(group)) {
+                      <div class="exp-form-grid" [class.exp-form-grid--wide]="group.key === 'bajas'">
+                        @for (field of group.fields; track field.key) {
+                          @if (fieldVisible(field, state().forms[group.key] || {})) {
+                            <label class="exp-field" [class.exp-field--error]="fieldInvalid(group.key,field)" [class.exp-field--wide]="field.type === 'textarea'">
+                              <span>{{ field.label }} @if (field.required) { <b aria-label="Obligatorio">*</b> }</span>
+                              @switch (field.type) {
+                                @case ('yesno') {
+                                  <select [ngModel]="inlineFieldValue(group.key,field.key)" (ngModelChange)="onInlineField(group,field,$event)">
+                                    <option value="">Seleccione...</option><option value="si">Sí</option><option value="no">No</option>
+                                  </select>
+                                }
+                                @case ('textarea') {
+                                  <textarea appInputCase rows="3" [ngModel]="inlineFieldValue(group.key,field.key)" (ngModelChange)="onInlineField(group,field,$event)" [placeholder]="field.placeholder || 'Escriba la descripción'"></textarea>
+                                }
+                                @default {
+                                  <input appInputCase [type]="field.type || 'text'" [attr.min]="field.type === 'date' ? '1900-01-01' : field.min ?? null" [attr.max]="field.max ?? null"
+                                    [attr.step]="field.type === 'number' ? 'any' : null" [readOnly]="field.key === 'imc'"
+                                    [ngModel]="inlineFieldValue(group.key,field.key)" (ngModelChange)="onInlineField(group,field,$event)"
+                                    [placeholder]="field.placeholder || (field.type === 'text' ? 'Ingrese la información' : '')" />
+                                }
+                              }
+                              @if (field.hint) { <small>{{ field.hint }}</small> }
+                              @if (fieldInvalid(group.key,field)) { <em>Verifique el dato obligatorio o su formato.</em> }
+                            </label>
+                          }
+                        }
+                      </div>
+                      @if (group.sections?.length) {
+                        @for (section of group.sections; track section.title) {
+                          @if (group.key !== 'condicion' || inlineFieldValue('condicion','incapacidades') === 'si') {
+                            <h4 class="exp-subtitle">{{ section.title }}</h4>
+                            <div class="exp-form-grid">
+                              @for (field of section.fields; track field.key) {
+                                <label class="exp-field" [class.exp-field--error]="fieldInvalid(group.key,field)" [class.exp-field--wide]="field.type === 'textarea'">
+                                  <span>{{ field.label }} @if(field.required){ <b>*</b> }</span>
+                                  @if (field.type === 'textarea') {<textarea appInputCase rows="3" [ngModel]="inlineFieldValue(group.key,field.key)" (ngModelChange)="onInlineField(group,field,$event)"></textarea>}
+                                  @else {<input appInputCase [type]="field.type || 'text'" [ngModel]="inlineFieldValue(group.key,field.key)" (ngModelChange)="onInlineField(group,field,$event)" [attr.min]="field.type === 'date' ? '1900-01-01' : field.min ?? null" [attr.step]="field.type === 'number' ? 'any' : null"/>}
+                                  @if (fieldInvalid(group.key,field)) { <em>Revise este campo.</em> }
+                                </label>
+                              }
+                            </div>
+                          }
+                        }
+                      }
+                      <button class="exp-secondary" type="button" (click)="saveCurrentGroup(group)">{{ group.repeatable ? '+ Agregar registro' : 'Guardar apartado' }}</button>
+                    }
+                    @if (entries(group).length > 0) {
+                      <div class="exp-table-scroll"><table class="exp-table">
+                        <thead><tr>@for (key of group.columns || []; track key){<th>{{ nameFor(group,key) }}</th>}<th>Acciones</th></tr></thead>
+                        <tbody>
+                          @for (row of entries(group); track row.id) {
+                            <tr>@for (key of group.columns || []; track key){<td>{{ valueLabel(row.values[key]) }}</td>}
+                              <td class="exp-table-actions"><button type="button" (click)="openModal(group,row)" [attr.aria-label]="'Editar '+group.label">Editar</button>
+                                <button type="button" (click)="deleteRecord(group,row)" [attr.aria-label]="'Eliminar '+group.label">Eliminar</button></td></tr>
+                          }
+                        </tbody>
+                      </table></div>
+                    } @else if (group.repeatable && !showInitialInline(group)) {
+                      <p class="exp-empty">Sin registros. Utiliza «{{ group.button || 'Agregar registro' }}» para comenzar.</p>
+                    }
+                    @if (group.documents && group.fields.length) {
+                      <div class="exp-upload-block">
+                        <h4>Documentos probatorios</h4>
+                        <label class="exp-dropzone">+ Cargar archivo <small>PDF o JPG, máx. 5 MB</small>
+                          <input type="file" accept=".pdf,.jpg,.jpeg,application/pdf,image/jpeg" multiple (change)="onFileInput($event,group.key)" />
+                        </label>
+                        @for (file of fileList(group.key); track file.id) {<div class="exp-file"><span>{{ file.name }}</span><button type="button" (click)="removeFile(group.key,file.id)">Quitar</button></div>}
+                        <p class="exp-footnote">Los archivos seleccionados aún no se transfieren al servidor.</p>
+                      </div>
+                    }
+                  }
+                </section>
+              }
+            </div>
+            <footer class="exp-card-footer">
+              <div class="exp-card-footer__left"><button type="button" class="exp-draft" (click)="saveDraft()">▤ Guardar borrador</button><button type="button" class="exp-clear" (click)="clearLocalCapture()">Borrar captura local</button></div>
+              @if (hasTabs()) {<button type="button" class="exp-primary" (click)="nextTab()">Continuar →</button>}
+              @else { <button type="button" class="exp-secondary" (click)="goToMenu()">Volver al menú</button> }
+            </footer>
+          </article>
+          <p class="exp-local-notice">El guardado de los módulos nuevos es local; no equivale a un registro confirmado por el servidor.</p>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+@if (selectedGroup(); as group) {
+  <div class="exp-modal-backdrop" role="presentation" (click)="closeModal()" (keydown.escape)="onEscape()" tabindex="-1">
+    <section class="exp-modal" role="dialog" aria-modal="true" [attr.aria-label]="group.label" (click)="$event.stopPropagation()">
+      <div class="exp-modal-head"><div><h2>{{ group.label }}</h2><small>{{ editId() ? 'Actualizar registro' : 'Agregar registro' }}</small></div><button type="button" aria-label="Cerrar formulario" (click)="closeModal()">×</button></div>
+      @if (error()) { <p class="exp-alert exp-alert--error" role="alert">{{ error() }}</p> }
+      <div class="exp-form-grid exp-modal-grid">
+        @for (field of group.fields; track field.key) {
+          @if (fieldVisible(field, modalValue())) {
+            <label class="exp-field" [class.exp-field--error]="fieldInvalid(group.key,field)" [class.exp-field--wide]="field.type === 'textarea'">
+              <span>{{ field.label }} @if(field.required){<b aria-label="Obligatorio">*</b>}</span>
+              @switch (field.type) {
+                @case ('yesno') {<select [ngModel]="modalValue()[field.key] || ''" (ngModelChange)="onModalField(field.key,$event)">
+                  <option value="">Seleccione...</option><option value="si">Sí</option><option value="no">No</option></select>}
+                @case ('textarea') {<textarea appInputCase rows="3" [ngModel]="modalValue()[field.key] || ''" (ngModelChange)="onModalField(field.key,$event)"></textarea>}
+                @default {<input appInputCase [type]="field.type || 'text'" [ngModel]="modalValue()[field.key] || ''" (ngModelChange)="onModalField(field.key,$event)" [placeholder]="field.placeholder || ''" [attr.min]="field.type === 'date' ? '1900-01-01' : field.min ?? null" [attr.max]="field.max ?? null" [attr.step]="field.type === 'number' ? 'any' : null" />}
+              }
+              @if (fieldInvalid(group.key,field)) { <em>Campo obligatorio o dato inválido.</em> }
+            </label>
+          }
+        }
+      </div>
+      @if (group.documents) {
+        <div class="exp-modal-files"><label class="exp-dropzone">+ Agregar documento <small>PDF o JPG, máx. 5 MB</small>
+          <input type="file" accept=".pdf,.jpg,.jpeg,application/pdf,image/jpeg" multiple (change)="onFileInput($event,group.key,true)" />
+        </label>
+          @for (name of modalDocumentNames(); track $index; let i=$index) {<div class="exp-file"><span>{{name}}</span><button type="button" (click)="removeModalFile(i)">Quitar</button></div>}
+        </div>
+      }
+      <footer class="exp-modal-footer"><button type="button" class="exp-secondary" (click)="closeModal()">Cancelar</button><button type="button" class="exp-primary" (click)="submitModal()">{{ editId() ? 'Guardar cambios' : '+ Agregar' }}</button></footer>
+    </section>
+  </div>
+}

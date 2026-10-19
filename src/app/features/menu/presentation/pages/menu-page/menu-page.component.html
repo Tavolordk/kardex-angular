@@ -48,7 +48,7 @@
               </div>
               <div class="menu-card__footer">
                 @if (card.section; as section) {
-                  <a class="menu-card__button" [routerLink]="['/registro']" [queryParams]="{ seccion: section }">
+                  <a class="menu-card__button" [routerLink]="card.newModule ? ['/modulo', section] : ['/registro']" [queryParams]="card.newModule ? {} : { seccion: section }">
                     {{ card.action === 'Consultar' ? 'Consultar' : (percent(card.section) === 100 ? 'Revisar' : (percent(card.section) > 0 ? 'Continuar' : 'Iniciar')) }}
                   </a>
                 } @else {
