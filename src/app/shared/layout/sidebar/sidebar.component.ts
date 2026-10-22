@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import { ASSETS } from '../../../core/constants/assets';
 
 interface MenuItem {
@@ -12,7 +12,7 @@ interface MenuItem {
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, RouterLinkActive],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -21,11 +21,10 @@ export class SidebarComponent {
   readonly open = input(true);
   readonly toggled = output<void>();
   readonly assets = ASSETS;
-  // Figma 731:679: únicamente tres módulos. Consulta y Administración aún no
-  // tienen rutas ni funcionalidades; se representan deshabilitados, no simulados.
+  // Figma conserva tres módulos. Administración permanece deshabilitada: no hay endpoint provisto.
   readonly items: readonly MenuItem[] = [
-    { title: 'Registro', description: 'Captura inicial', icon: ASSETS.icons.registro, path: '/menu' },
-    { title: 'Consulta', description: 'Búsqueda de personal', icon: ASSETS.icons.search },
+    { title: 'Registro', description: 'Captura inicial', icon: ASSETS.icons.registro, path: '/registro' },
+    { title: 'Consulta', description: 'Búsqueda de personal', icon: ASSETS.icons.search, path: '/consulta' },
     { title: 'Administración', description: 'Usuarios y permisos', icon: ASSETS.icons.administration }
   ];
 }

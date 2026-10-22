@@ -3,6 +3,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ASSETS } from '../../../../../core/constants/assets';
 import { GetCurrentSessionUseCase } from '../../../../auth/application/get-current-session.use-case';
 import { SignOutUseCase } from '../../../../auth/application/sign-out.use-case';
+import { KardexFlowService } from '../../../../../core/navigation/kardex-flow.service';
 import { InstitutionalHeaderComponent } from '../../../../../shared/layout/institutional-header/institutional-header.component';
 import { SidebarComponent } from '../../../../../shared/layout/sidebar/sidebar.component';
 import { SectionHeaderComponent } from '../../../../../shared/ui/section-header/section-header.component';
@@ -43,6 +44,7 @@ export class MenuPageComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly sessionUseCase = inject(GetCurrentSessionUseCase);
   private readonly signOutUseCase = inject(SignOutUseCase);
+  private readonly flow = inject(KardexFlowService);
   private readonly borradorRepository = inject(HttpRegistroRepository);
   private readonly borradorApi = inject(KardexSaveApiService);
 
@@ -52,6 +54,7 @@ export class MenuPageComponent implements OnInit {
   readonly percentages = signal<Partial<Record<RegistrationSection, number>>>({});
   readonly completedMessage = signal('');
   readonly borradorId = signal<number | null>(null);
+  readonly selectedCurp = this.flow.selectedCurp();
   readonly draftError = signal('');
   readonly draftLoading = signal(true);
   readonly deletingDraft = signal(false);
@@ -65,6 +68,7 @@ export class MenuPageComponent implements OnInit {
     { title: 'Profesionalización', description: 'Formación inicial, continua y sus comprobantes.', section: 'profesionalizacion', action: 'Actualizar', newModule: true },
     { title: 'Estímulos/reconocimientos', description: 'Registro de bonificaciones, distinciones otorgadas.', section: 'estimulos', action: 'Actualizar', newModule: true },
     { title: 'Separación del cargo', description: 'Registro de la conclusión de la relación administrativa.', section: 'separacion', action: 'Actualizar', newModule: true },
+    { title: 'Régimen disciplinario', description: 'Medidas preventivas, resoluciones y sanciones del personal.', action: 'Actualizar' },
     { title: 'Salud y bienestar', description: 'Datos físicos, incapacidades y perfil psicosocial.', section: 'salud', action: 'Actualizar', newModule: true }
   ];
 
@@ -96,6 +100,7 @@ export class MenuPageComponent implements OnInit {
       for (const key of Object.keys(localStorage)) if (key.startsWith('kardex.demo.laboral.') || key.startsWith(scope)) localStorage.removeItem(key);
       for (const key of Object.keys(sessionStorage)) if (key.startsWith(scope)) sessionStorage.removeItem(key);
       this.borradorId.set(null);
+      this.flow.clear();
       this.completedMessage.set('Borrador eliminado correctamente.');
       this.readProgress();
     } catch (error) {
@@ -168,7 +173,7 @@ export class MenuPageComponent implements OnInit {
   }
 
   async logout(): Promise<void> {
-    try { if (typeof window !== 'undefined') window.sessionStorage.removeItem('kardex.modulos.v1.' + encodeURIComponent(this.session?.userId || 'invitado') + '.salud'); await this.signOutUseCase.execute(); }
+    try { if (typeof window !== 'undefined') window.sessionStorage.removeItem('kardex.modulos.v1.' + encodeURIComponent(this.session?.userId || 'invitado') + '.salud'); this.flow.clear(); await this.signOutUseCase.execute(); }
     finally { await this.router.navigate(['/login']); }
   }
 }

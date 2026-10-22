@@ -86,3 +86,19 @@ app-login-page input[type='email'] {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
+
+/* Seguridad de geometría en todas las vistas, incluidos escritorio compacto,
+   formularios largos, modales y tablas con información variable. */
+:root { --kardex-min-tap: 40px; }
+app-root, app-login-page, app-registro-page, app-menu-page,
+app-modulo-page, app-consulta-page, app-initial-validation-page { display: block; max-width: 100%; min-width: 0; }
+main, section, article, .workspace, .menu-main, .exp-main { min-width: 0; }
+input, select, textarea, button { max-width: 100%; }
+input[type='file'] { min-width: 0; }
+textarea { max-width: 100%; }
+p, small, label, .flow-result__info, .flow-person-summary { overflow-wrap: anywhere; }
+@media (max-width: 760px) {
+  input, select, textarea { font-size: max(16px, 1em); }
+  button, a { -webkit-tap-highlight-color: transparent; }
+  .registration-card input[type='checkbox'], .registration-card input[type='radio'] { width: auto; }
+}

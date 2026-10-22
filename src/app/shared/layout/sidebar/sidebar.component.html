@@ -8,7 +8,7 @@
   <nav aria-label="Módulos principales">
     @for (item of items; track item.title) {
       @if (item.path) {
-        <a class="menu-item active" [routerLink]="item.path" aria-current="page" [attr.title]="item.title">
+        <a class="menu-item" [routerLink]="item.path" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false }" [attr.title]="item.title">
           <span class="menu-icon"><img [src]="item.icon" alt="" /></span>
           <span class="menu-copy"><strong>{{ item.title }}</strong><small>{{ item.description }}</small></span>
           <span class="arrow" aria-hidden="true">›</span>

@@ -161,3 +161,32 @@
 .menu-draft-toolbar button { padding:8px 12px; background:transparent; border:1px solid #cbd5e1; border-radius:8px; color:#7f1d1d; cursor:pointer; font:inherit; }
 .menu-draft-toolbar button:disabled { cursor:wait; opacity:.6; }
 .menu-draft-alert { padding:12px 14px; background:#fff7ed; border:1px solid #fed7aa; border-radius:10px; color:#9a3412; margin-bottom:12px; }
+
+/* El perfil se confirma en Consulta; indicador compacto sin alterar las tarjetas del Figma. */
+.menu-selected-profile {
+  max-width: 1520px;
+  margin: 0 auto 18px;
+  padding: 11px 16px;
+  border: 1px solid rgba(114,129,150,.19);
+  border-radius: 13px;
+  background: rgba(255,255,255,.7);
+  color: #405266;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  font: 600 12px/1.5 var(--font-body);
+}
+.menu-selected-profile strong { margin-right: 7px; font-family: var(--font-heading); }
+.menu-selected-profile small { font-size: 11px; color: #728091; overflow-wrap: anywhere; }
+.menu-selected-profile a { color: #516b83; text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; font-weight: 700; }
+@media (min-width: 901px) and (max-width: 1160px) {
+  .menu-content { padding: 28px 18px; }
+  .menu-grid { grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; }
+}
+@media (max-width: 380px) {
+  .menu-card { padding: 14px; }
+  .menu-card__button { width: 100%; }
+  .menu-selected-profile { padding: 12px; }
+}

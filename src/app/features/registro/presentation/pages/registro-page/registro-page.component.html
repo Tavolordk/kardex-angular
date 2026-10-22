@@ -26,7 +26,7 @@
       <app-section-header [title]="sectionHeaderTitle()" [subtitle]="sectionHeaderSubtitle()" />
 
       @if (facade.restoreWarning()) { <p class="functional-error" role="alert">{{ facade.restoreWarning() }}. Se muestra el avance local disponible.</p> }
-      <div class="registration-back-link"><button type="button" (click)="goToMenu()">‹ Volver al menú de navegación</button></div>
+      @if (flow.hasSelectedProfile()) { <div class="registration-back-link"><button type="button" (click)="goToMenu()">‹ Volver al menú de navegación</button></div> }
       @if (sectionFinished()) {
         <section class="section-completion" aria-live="polite" aria-labelledby="completion-title">
           <div class="section-completion__symbol" aria-hidden="true">✓</div>
@@ -137,7 +137,7 @@
             }
 
             <div class="section-actions" aria-label="Acciones del apartado actual">
-              <button type="button" class="section-actions__back" [disabled]="facade.isSaving()" (click)="goToMenu()">Volver al menú</button>
+              @if (flow.hasSelectedProfile()) { <button type="button" class="section-actions__back" [disabled]="facade.isSaving()" (click)="goToMenu()">Volver al menú</button> }
               @if (activeSection() === 'datos') {
                 @if (activeIndex() > 0) {
                   <button type="button" class="section-actions__back" [disabled]="facade.isSaving()" (click)="previous()">Anterior</button>

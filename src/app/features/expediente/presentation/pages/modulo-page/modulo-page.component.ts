@@ -5,6 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { GetCurrentSessionUseCase } from '../../../../auth/application/get-current-session.use-case';
 import { SignOutUseCase } from '../../../../auth/application/sign-out.use-case';
+import { KardexFlowService } from '../../../../../core/navigation/kardex-flow.service';
 import { InstitutionalHeaderComponent } from '../../../../../shared/layout/institutional-header/institutional-header.component';
 import { SidebarComponent } from '../../../../../shared/layout/sidebar/sidebar.component';
 import { SectionHeaderComponent } from '../../../../../shared/ui/section-header/section-header.component';
@@ -34,6 +35,7 @@ export class ModuloPageComponent implements OnDestroy {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly signOutUseCase = inject(SignOutUseCase);
+  private readonly flow = inject(KardexFlowService);
   private readonly sessionUseCase = inject(GetCurrentSessionUseCase);
   private readonly routeSubscription: Subscription;
   private readonly volatileFiles = new Map<string, File>();
@@ -249,7 +251,7 @@ export class ModuloPageComponent implements OnDestroy {
     this.state.set(createState()); this.fileSelections.set({}); this.volatileFiles.clear();
     this.invalidFields.set([]); this.error.set(''); this.notice.set('Captura local borrada.');
   }
-  async logout(): Promise<void> { try { if (typeof window !== 'undefined') window.sessionStorage.removeItem(this.moduleStorageKey('salud')); await this.signOutUseCase.execute(); } finally { void this.router.navigate(['/login']); } }
+  async logout(): Promise<void> { try { if (typeof window !== 'undefined') window.sessionStorage.removeItem(this.moduleStorageKey('salud')); this.flow.clear(); await this.signOutUseCase.execute(); } finally { void this.router.navigate(['/login']); } }
 
   fileCount(bucket: string): number { return this.fileSelections()[bucket]?.length || 0; }
   fileList(bucket: string): readonly FileSelection[] { return this.fileSelections()[bucket] || []; }

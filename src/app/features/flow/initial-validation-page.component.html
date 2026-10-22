@@ -1,0 +1,48 @@
+<div class="flow-shell">
+  <app-institutional-header [displayName]="session?.displayName ?? 'Administrador Kardex'" [role]="session?.role ?? 'Administrador'" (logoutRequested)="logout()" />
+  <div class="flow-layout">
+    <app-sidebar [open]="sidebarOpen()" (toggled)="toggleSidebar()" />
+    @if (sidebarOpen()) { <button class="flow-sidebar-backdrop" type="button" aria-label="Cerrar navegación" (click)="closeMobileSidebar()"></button> }
+    <main class="flow-main">
+      <button type="button" class="flow-mobile-toggle" [attr.aria-expanded]="sidebarOpen()" aria-label="Abrir navegación" (click)="toggleSidebar()"><span></span><span></span><span></span></button>
+      <app-section-header title="Validación inicial" subtitle="Revisión de los datos capturados en el registro inicial" [showBadges]="false" />
+      <div class="flow-content">
+        <nav class="flow-steps" aria-label="Etapas del proceso">
+          <a routerLink="/registro" class="flow-step flow-step--done"><span>1</span> Registro</a>
+          <span class="flow-step flow-step--current" aria-current="step"><span>2</span> Validación inicial</span>
+          <span class="flow-step"><span>3</span> Consulta</span>
+          <span class="flow-step"><span>4</span> Menú</span>
+        </nav>
+        <section class="flow-card" aria-labelledby="review-title">
+          <div class="flow-card__header">
+            <div><span class="flow-eyebrow">SEGUNDA ETAPA</span><h2 id="review-title">Revisión de la información</h2><p>Confirma que los datos obligatorios estén completos antes de consultar el perfil.</p></div>
+            <span class="flow-status" [class.flow-status--good]="complete()">{{ complete() ? 'Captura completa' : 'Revisión pendiente' }}</span>
+          </div>
+          @if (loading()) { <p role="status" class="flow-notice">Recuperando el registro...</p> }
+          @else {
+            @if (error()) { <p class="flow-notice flow-notice--warning" role="alert">{{ error() }}</p> }
+            @if (draft(); as person) {
+              <div class="flow-person-summary">
+                <span class="flow-avatar" aria-hidden="true">{{ person.nombres.slice(0, 1) }}{{ person.primerApellido.slice(0, 1) }}</span>
+                <div><strong>{{ person.nombres }} {{ person.primerApellido }} {{ person.segundoApellido }}</strong><small>CURP: {{ person.curp }} · Nómina: {{ person.numeroNomina || 'Sin capturar' }}</small></div>
+              </div>
+              <div class="flow-review-grid">
+                @for (section of sections(); track section.title) {
+                  <article class="flow-review-item" [class.flow-review-item--missing]="!section.complete">
+                    <span class="flow-review-icon" aria-hidden="true">{{ section.complete ? '✓' : '!' }}</span>
+                    <div><h3>{{ section.title }}</h3><p>{{ section.complete ? 'Campos obligatorios completos.' : 'Faltan: ' + section.missing.join(', ') }}</p></div>
+                  </article>
+                }
+              </div>
+              <p class="flow-explanation">Esta etapa comprueba la integridad de la captura en el sistema. No representa una verificación oficial de identidad ni una aprobación externa.</p>
+            } @else { <div class="flow-empty"><h3>No hay un registro por revisar</h3><p>Captura y guarda primero la información del personal.</p></div> }
+          }
+          <div class="flow-actions">
+            <a routerLink="/registro" class="flow-button flow-button--secondary">{{ complete() ? 'Editar registro' : 'Volver a completar registro' }}</a>
+            <button type="button" class="flow-button flow-button--primary" [disabled]="!complete() || loading()" (click)="confirm()">Confirmar revisión y continuar →</button>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+</div>

@@ -65,3 +65,18 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 @media(max-width:620px){.exp-help{grid-template-columns:1fr}.exp-form-grid,.exp-form-grid--wide{grid-template-columns:1fr}.exp-card-content{padding:14px}.exp-group{padding:12px}.exp-group-heading{align-items:flex-start;flex-direction:column}.exp-files{grid-template-columns:1fr}.exp-card-head{align-items:flex-start}.exp-card-head h2{font-size:16px}.exp-tabs{padding:10px 8px 0}.exp-tab{min-width:154px;padding-inline:8px}.exp-modal{padding:17px 13px}.exp-card-footer{padding:14px;flex-wrap:wrap}.exp-primary--small{align-self:flex-end}}
 
 .exp-card-footer__left{display:flex;flex-wrap:wrap;gap:10px;align-items:center}.exp-clear{border:0;background:transparent;color:#a15a61;font-size:11px;font-weight:700;padding:9px}.exp-clear:hover{text-decoration:underline}
+
+/* Un monitor mediano puede tener menos ancho útil por la barra lateral. */
+@media (min-width: 901px) and (max-width: 1199px) {
+  .exp-columns { grid-template-columns: minmax(0,1fr); }
+  .exp-help { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+@media (max-width: 480px) {
+  .exp-card { border-radius: 16px; }
+  .exp-card-head { flex-wrap: wrap; }
+  .exp-card-head > * { min-width: 0; }
+  .exp-modal-grid { margin-block: 12px; }
+  .exp-modal-footer { flex-wrap: wrap; }
+  .exp-modal-footer button { flex: 1 1 140px; }
+  .exp-status { white-space: normal; }
+}

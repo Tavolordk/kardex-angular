@@ -16,6 +16,12 @@
       </button>
       <app-section-header title="Menú navegación" subtitle="Indicadores generales y accesos inteligentes del sistema" [showBadges]="false" />
       <div class="menu-content">
+        @if (selectedCurp) {
+          <div class="menu-selected-profile" role="status">
+            <span><strong>Perfil seleccionado</strong> <small>CURP: {{ selectedCurp }}</small></span>
+            <a routerLink="/consulta">Cambiar perfil</a>
+          </div>
+        }
         @if (completedMessage()) {
           <div class="menu-confirmation" role="status">
             <span aria-hidden="true">✓</span>

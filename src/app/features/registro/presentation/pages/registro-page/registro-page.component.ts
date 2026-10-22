@@ -5,6 +5,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { ASSETS } from '../../../../../core/constants/assets';
 import { GetCurrentSessionUseCase } from '../../../../auth/application/get-current-session.use-case';
 import { SignOutUseCase } from '../../../../auth/application/sign-out.use-case';
+import { KardexFlowService } from '../../../../../core/navigation/kardex-flow.service';
 import { InstitutionalHeaderComponent } from '../../../../../shared/layout/institutional-header/institutional-header.component';
 import { SidebarComponent } from '../../../../../shared/layout/sidebar/sidebar.component';
 import { SectionHeaderComponent } from '../../../../../shared/ui/section-header/section-header.component';
@@ -73,6 +74,7 @@ export class RegistroPageComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly signOutUseCase = inject(SignOutUseCase);
+  readonly flow = inject(KardexFlowService);
   private readonly getSessionUseCase = inject(GetCurrentSessionUseCase);
   private readonly helperStorageKey = 'kardex.helper-panels.v1';
 
@@ -394,6 +396,12 @@ export class RegistroPageComponent implements OnInit {
         return;
       }
     }
+    if (section === 'datos') {
+      // La validación inicial es el siguiente destino, nunca el menú.
+      this.flow.invalidateReview();
+      await this.router.navigateByUrl('/validacion-inicial');
+      return;
+    }
     this.sectionFinished.set(true);
     this.scrollToTop();
   }
@@ -401,6 +409,10 @@ export class RegistroPageComponent implements OnInit {
   /** La navegación entre apartados se ofrece únicamente tras la confirmación,
    * o para consultar certificación desde Control de confianza. */
   continueToNext(): void {
+    if (this.activeSection() === 'datos') {
+      void this.router.navigateByUrl('/validacion-inicial');
+      return;
+    }
     const current = this.sections.findIndex(section => section.key === this.activeSection());
     const nextSection = this.sections[current + 1];
     if (!nextSection) {
@@ -430,7 +442,7 @@ export class RegistroPageComponent implements OnInit {
       }
     }
     const completed = this.sectionFinished() ? this.activeSection() : null;
-    await this.router.navigate(['/menu'], {
+    await this.router.navigate([this.flow.hasSelectedProfile() ? '/menu' : '/registro'], {
       queryParams: completed ? { completada: completed } : undefined
     });
   }
@@ -502,6 +514,7 @@ export class RegistroPageComponent implements OnInit {
   async logout(): Promise<void> {
     try {
       if (typeof window !== 'undefined') window.sessionStorage.removeItem('kardex.modulos.v1.' + encodeURIComponent(this.session?.userId || 'invitado') + '.salud');
+      this.flow.clear();
       await this.signOutUseCase.execute();
     } finally {
       await this.router.navigate(['/login']);

@@ -1,0 +1,40 @@
+<div class="flow-shell">
+  <app-institutional-header [displayName]="session?.displayName ?? 'Administrador Kardex'" [role]="session?.role ?? 'Administrador'" (logoutRequested)="logout()" />
+  <div class="flow-layout">
+    <app-sidebar [open]="sidebarOpen()" (toggled)="toggleSidebar()" />
+    @if (sidebarOpen()) { <button class="flow-sidebar-backdrop" type="button" aria-label="Cerrar navegación" (click)="closeMobileSidebar()"></button> }
+    <main class="flow-main">
+      <button type="button" class="flow-mobile-toggle" [attr.aria-expanded]="sidebarOpen()" aria-label="Abrir navegación" (click)="toggleSidebar()"><span></span><span></span><span></span></button>
+      <app-section-header title="Consulta" subtitle="Búsqueda y selección del perfil del personal policial" [showBadges]="false" />
+      <div class="flow-content">
+        <nav class="flow-steps" aria-label="Etapas del proceso">
+          <a routerLink="/registro" class="flow-step flow-step--done"><span>1</span> Registro</a>
+          <a routerLink="/validacion-inicial" class="flow-step flow-step--done"><span>2</span> Validación inicial</a>
+          <span class="flow-step flow-step--current" aria-current="step"><span>3</span> Consulta</span>
+          <span class="flow-step"><span>4</span> Menú</span>
+        </nav>
+        <section class="flow-card" aria-labelledby="consulta-title">
+          <div class="flow-card__header">
+            <div><span class="flow-eyebrow">TERCERA ETAPA</span><h2 id="consulta-title">Consulta de personal</h2><p>Busca por nombre, CURP, CUIP o número de nómina y selecciona el perfil para abrir su expediente.</p></div>
+          </div>
+          <label class="flow-search-label" for="flow-search">Buscar perfil</label>
+          <div class="flow-search"><span aria-hidden="true">⌕</span><input id="flow-search" type="search" [value]="query()" (input)="onSearch($event)" placeholder="Nombre, CURP, CUIP o número de nómina" autocomplete="off" /></div>
+          @if (error()) { <p class="flow-notice flow-notice--warning" role="alert">{{ error() }}</p> }
+          @if (loading()) { <p class="flow-notice" role="status">Cargando información del personal...</p> }
+          @else if (filtered(); as person) {
+            <div class="flow-results-heading"><strong>Resultados de la consulta</strong><span>1 perfil encontrado</span></div>
+            <article class="flow-result">
+              <span class="flow-avatar" aria-hidden="true">{{ person.nombres.slice(0, 1) }}{{ person.primerApellido.slice(0, 1) }}</span>
+              <div class="flow-result__info"><h3>{{ person.nombres }} {{ person.primerApellido }} {{ person.segundoApellido }}</h3><p>CURP: {{ person.curp }}</p><small>CUIP: {{ person.cuip || 'No registrado' }} · Nómina: {{ person.numeroNomina || 'Sin registrar' }}</small></div>
+              <button type="button" class="flow-button flow-button--primary" (click)="selectProfile()">Seleccionar perfil →</button>
+            </article>
+          } @else {
+            <div class="flow-empty"><h3>Sin perfiles para mostrar</h3><p>{{ draft() ? 'La búsqueda no coincide con el perfil registrado o se necesita repetir la validación inicial.' : 'Primero realiza un registro para poder consultar y seleccionar su perfil.' }}</p></div>
+          }
+          <div class="flow-actions"><a routerLink="/validacion-inicial" class="flow-button flow-button--secondary">← Regresar a validación inicial</a></div>
+          <p class="flow-explanation">Esta versión muestra únicamente el perfil disponible en el borrador registrado. La búsqueda de múltiples personas requiere integrar el endpoint de consulta del backend.</p>
+        </section>
+      </div>
+    </main>
+  </div>
+</div>

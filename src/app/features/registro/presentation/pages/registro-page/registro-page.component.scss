@@ -1052,3 +1052,54 @@
 .registration-loading {padding:24px; text-align:center; color:#475569; }
 
 .draft-file-note { font-size:12px; line-height:1.45; color:#80562c; padding:8px 16px; }
+
+/* La maqueta Figma establece mínimos de referencia en escritorio, no cajas
+   recortadas: permitir que campos dinámicos, errores y textos aumenten altura. */
+@media (min-width: 1181px) {
+  .registration-card--identification,
+  .registration-card--contact,
+  .registration-card--photo { height: auto; flex-shrink: 1; }
+  .registration-card--identification { min-height: 719px; }
+  .registration-card--contact { min-height: 582px; }
+  .registration-card--photo { min-height: 575px; }
+  .registration-card--identification .card-content { height: auto; min-height: 581px; }
+  .registration-card--contact .card-content { height: auto; min-height: 419px; }
+  .registration-card--photo .card-content { height: auto; min-height: 430px; }
+  .registration-card--identification .card-actions,
+  .registration-card--contact .card-actions,
+  .registration-card--photo .card-actions { height: auto; min-height: 63px; padding-block: 12px; align-items: center; }
+}
+@media (min-width: 1181px) and (max-width: 1919px) {
+  .registration-card--identification,
+  .registration-card--contact,
+  .registration-card--photo { min-height: 0; }
+  .registration-card--identification .card-content,
+  .registration-card--contact .card-content,
+  .registration-card--photo .card-content { min-height: 0; }
+}
+/* Pantallas de laptop y tablet: impedir que las columnas del escritorio
+   mantengan tamaños superiores al espacio visible del formulario. */
+.page-content > *, .form-zone > *, .registration-card > *,
+.registration-card .form-body { min-width: 0; }
+@media (max-width: 1180px) {
+  .registration-card--identification,
+  .registration-card--contact,
+  .registration-card--photo { min-width: 0; max-width: 100%; height: auto; }
+  .registration-card--identification .card-content,
+  .registration-card--contact .card-content,
+  .registration-card--photo .card-content { height: auto; min-height: 0; }
+}
+@media (max-width: 760px) {
+  .form-heading { flex-wrap: wrap; gap: 9px; }
+  .form-heading > b { white-space: normal; }
+  .registration-card { border-radius: 20px; }
+  .card-content { padding: 18px 14px; }
+  .card-actions { padding: 12px 14px; }
+  .save-button { max-width: 100%; }
+  .section-actions { flex-wrap: wrap; }
+}
+@media (max-width: 430px) {
+  .registration-card { border-radius: 15px; }
+  .title-line h3 { font-size: 17px; white-space: normal; }
+  .section-completion { width: min(100%, calc(100% - 12px)); padding: 18px; }
+}

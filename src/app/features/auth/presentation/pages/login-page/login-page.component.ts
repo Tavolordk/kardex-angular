@@ -159,7 +159,7 @@ export class LoginPageComponent {
     this.busy.set(true);
     try {
       await this.verifyAccessCode.execute(challenge.id, code);
-      await this.router.navigateByUrl('/menu', { replaceUrl: true });
+      await this.router.navigateByUrl('/registro', { replaceUrl: true });
     } catch (error) {
       this.errorMessage.set(this.errorText(error, 'No fue posible verificar el código.'));
       this.focusAlert();

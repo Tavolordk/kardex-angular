@@ -191,3 +191,15 @@ li p,
     width: 280px;
   }
 }
+
+/* Contenido dinámico: mantener dimensiones de referencia Figma sin recortar
+   avisos, porcentajes o listas cuando cambian los textos en desktop. */
+@media (min-width: 1181px) {
+  .instructions, .progress-card, .progress-card.compact,
+  .general, .recommendation { height: auto; }
+  .instructions { min-height: 227px; }
+  .progress-card { min-height: 235px; }
+  .progress-card.compact { min-height: 109px; }
+  .general { min-height: 107px; }
+  .recommendation { min-height: 139px; }
+}
