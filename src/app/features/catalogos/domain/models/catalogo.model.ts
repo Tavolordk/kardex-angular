@@ -1,4 +1,4 @@
-/** Respuesta de catálogos confirmada mediante el endpoint CatalogosCarto/estados. */
+/** Sobre de respuesta utilizado por los catálogos cartográficos. */
 export interface CatalogoApiResponse<T> {
   success: boolean;
   message: string;
@@ -6,10 +6,16 @@ export interface CatalogoApiResponse<T> {
   errors: unknown;
 }
 
-export interface EstadoCartografico {
+export interface CatalogoCartografico {
   id: number;
   descripcion: string;
+  /** Otros datos del backend no se descartan del elemento original. */
+  [key: string]: unknown;
 }
+
+/** Compatibilidad con el modelo anterior de estados. */
+export type EstadoCartografico = CatalogoCartografico;
+
 
 export interface CatalogoOption {
   value: string;

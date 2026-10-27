@@ -1,10 +1,17 @@
 <div class="form-grid" [formGroup]="form()">
-  <label class="field required"><span>Entidad federativa residencia</span><select formControlName="entidadResidencia"><option value="">Seleccione...</option>@for (item of entidades(); track item.value) { <option [value]="item.value">{{ item.label }}</option> }</select></label>
-  <label class="field required"><span>Municipio de residencia</span><select formControlName="municipioResidencia"><option value="">Seleccione...</option>@for (item of municipios(); track item.value) { <option [value]="item.value">{{ item.label }}</option> }</select></label>
-  <label class="field required"><span>Calle</span><input appInputCase formControlName="calle" placeholder="Ej. Avenida Reforma" /></label>
+  <label class="field required"><span>Entidad federativa residencia</span><select formControlName="entidadResidencia" (change)="onEntidadChange()"><option value="">Seleccione...</option>@for (item of entidades(); track item.value) { <option [value]="item.value">{{ item.label }}</option> }</select></label>
+  <label class="field required"><span>Municipio de residencia</span><select formControlName="municipioResidencia" (change)="onMunicipioChange()"><option value="">Seleccione...</option>@for (item of municipios(); track item.value) { <option [value]="item.value">{{ item.label }}</option> }</select></label>
+  @if (localidades().length > 1) {
+    <label class="field"><span>Localidad</span><select [value]="localidadSeleccionada() ?? ''" (change)="onLocalidadChange($any($event.target).value)"><option value="">Seleccione una localidad...</option>@for (item of localidades(); track item.id) { <option [value]="item.id">{{ item.label }}</option> }</select></label>
+  }
+  <label class="field required"><span>Calle</span><input appInputCase formControlName="calle" list="kardex-calles-residencia" placeholder="Ej. Avenida Reforma" />
+    <datalist id="kardex-calles-residencia">@for (item of calles(); track item.id) { <option [value]="item.value"></option> }</datalist>
+  </label>
   <label class="field"><span>Número exterior</span><input appInputCase formControlName="numeroExterior" placeholder="Ej. 120" /></label>
   <label class="field"><span>Número interior</span><input appInputCase formControlName="numeroInterior" placeholder="Ej. 4B" /></label>
-  <label class="field"><span>Colonia</span><input appInputCase formControlName="colonia" placeholder="Ej. Centro" /></label>
+  <label class="field"><span>Colonia</span><input appInputCase formControlName="colonia" list="kardex-colonias-residencia" (change)="onColoniaChange()" placeholder="Ej. Centro" />
+    <datalist id="kardex-colonias-residencia">@for (item of colonias(); track item.id) { <option [value]="item.value"></option> }</datalist>
+  </label>
   <label class="field required"><span>Código postal</span><input appInputCase formControlName="codigoPostal" maxlength="5" inputmode="numeric" placeholder="Ej. 39000" /></label>
   @if (catalogError()) { <small class="error-text">{{ catalogError() }}</small> }
 </div>

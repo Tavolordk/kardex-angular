@@ -34,6 +34,7 @@ export class IdentificacionFormComponent implements OnInit {
   readonly entidades = signal<CatalogoOption[]>([]);
   readonly municipiosNacimiento = signal<CatalogoOption[]>([]);
   private municipioRequest = 0;
+  private fuenteGeografica: 'carto' | 'rnpsp' = 'rnpsp';
   isMexico(): boolean {
     const selected = String(this.form().get('nacionalidad')?.value || '');
     const label = this.paises().find(p => String(p.value) === selected)?.label || selected;
@@ -68,14 +69,32 @@ export class IdentificacionFormComponent implements OnInit {
     if (!this.isMexico()) return;
     if (idEntidad === null) {
       if (this.form().get('entidadNacimiento')?.value && this.entidades().length)
-        this.catalogError.set('La entidad seleccionada no contiene un identificador RNPSP válido para consultar municipios.');
+        this.catalogError.set('La entidad seleccionada no tiene un identificador válido para consultar municipios.');
       return;
     }
     try {
-      const municipios = await this.catalogos.municipiosRnpsp(idEntidad);
+      const municipios = this.fuenteGeografica === 'carto'
+        ? await this.catalogos.municipiosCarto(idEntidad)
+        : await this.catalogos.municipiosRnpsp(idEntidad);
       if (request === this.municipioRequest) this.municipiosNacimiento.set(municipios);
     } catch {
-      if (request === this.municipioRequest) this.catalogError.set('No se pudieron cargar los municipios de nacimiento.');
+      if (request !== this.municipioRequest) return;
+      if (this.fuenteGeografica === 'carto') {
+        try {
+          const entidadesAnteriores = await this.catalogos.entidadesRnpsp();
+          const actual = String(this.form().get('entidadNacimiento')?.value || '');
+          const idAnterior = entidadRnpspId(entidadesAnteriores, actual);
+          if (idAnterior !== null) {
+            const municipios = await this.catalogos.municipiosRnpsp(idAnterior);
+            if (request !== this.municipioRequest) return;
+            this.fuenteGeografica = 'rnpsp';
+            this.entidades.set(entidadesAnteriores);
+            this.municipiosNacimiento.set(municipios);
+            return;
+          }
+        } catch { /* IDs de fuentes distintas nunca se reutilizan directamente. */ }
+      }
+      this.catalogError.set('No se pudieron cargar los municipios de nacimiento.');
     }
   }
 
@@ -90,7 +109,7 @@ export class IdentificacionFormComponent implements OnInit {
       this.catalogos.preferirNuevo('nacionalidad', 1),
       this.catalogos.preferirNuevo('tipo-sangre', 2),
       this.catalogos.factoresSangreRnpsp(),
-      this.catalogos.entidadesRnpsp()
+      this.catalogos.entidadesGeograficas(String(this.form().get('entidadNacimiento')?.value || ''))
     ]);
 
     if (results[0].status === 'fulfilled') this.sexos.set(results[0].value);
@@ -102,7 +121,10 @@ export class IdentificacionFormComponent implements OnInit {
     if (results[5].status === 'fulfilled') this.nacionalidadesRnpsp.set(results[5].value);
     if (results[6].status === 'fulfilled') this.tiposSangre.set(results[6].value);
     if (results[7].status === 'fulfilled') this.factoresSangre.set(results[7].value);
-    if (results[8].status === 'fulfilled') this.entidades.set(results[8].value);
+    if (results[8].status === 'fulfilled') {
+      this.entidades.set(results[8].value.opciones);
+      this.fuenteGeografica = results[8].value.fuente;
+    }
     await this.loadMunicipiosNacimiento();
 
     if (results.some(result => result.status === 'rejected')) {

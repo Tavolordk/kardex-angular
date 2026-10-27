@@ -28,10 +28,11 @@ export class CondicionesLaboralesComponent {
  readonly mecanismosFinanciamiento = signal<CatalogoOption[]>([]);
  readonly tiposVivienda = signal<CatalogoOption[]>([]);
  private municipioRequest = 0;
+ private fuenteGeografica: 'carto' | 'rnpsp' = 'rnpsp';
 
  private async loadCatalogos(): Promise<void> {
    const settled = await Promise.allSettled([
-     this.catalogos.entidadesRnpsp(),
+     this.catalogos.entidadesGeograficas(this.adscripcion.entidad),
      this.catalogos.jerarquiasRnpsp(),
      this.catalogos.tiposArmaRnpsp(),
      this.catalogos.situacionLaboral(),
@@ -43,7 +44,16 @@ export class CondicionesLaboralesComponent {
    const options = [this.entidades, this.jerarquias, this.tiposArma,
      this.situacionesLaborales, this.institucionesSociales, this.institucionesVivienda,
      this.mecanismosFinanciamiento, this.tiposVivienda];
-   settled.forEach((item, i) => { if (item.status === 'fulfilled') options[i].set(item.value); });
+   settled.forEach((item, i) => {
+     if (item.status !== 'fulfilled') return;
+     if (i === 0) {
+       const geo = item.value as Awaited<ReturnType<CatalogosService['entidadesGeograficas']>>;
+       this.entidades.set(geo.opciones);
+       this.fuenteGeografica = geo.fuente;
+     } else {
+       options[i].set(item.value as CatalogoOption[]);
+     }
+   });
    if (settled.some(item => item.status === 'rejected'))
      this.catalogError.set('No fue posible cargar uno o más catálogos laborales.');
    await this.loadMunicipiosAdscripcion();
@@ -60,14 +70,31 @@ export class CondicionesLaboralesComponent {
    const id = entidadRnpspId(this.entidades(), this.adscripcion.entidad);
    if (id === null) {
      if (this.adscripcion.entidad && this.entidades().length)
-       this.catalogError.set('La entidad seleccionada no contiene un identificador RNPSP válido.');
+       this.catalogError.set('La entidad seleccionada no contiene un identificador válido.');
      return;
    }
    try {
-     const result = await this.catalogos.municipiosRnpsp(id);
+     const result = this.fuenteGeografica === 'carto'
+       ? await this.catalogos.municipiosCarto(id)
+       : await this.catalogos.municipiosRnpsp(id);
      if (request === this.municipioRequest) this.municipiosAdscripcion.set(result);
    } catch {
-     if (request === this.municipioRequest) this.catalogError.set('No se pudieron obtener los municipios de adscripción.');
+     if (request !== this.municipioRequest) return;
+     if (this.fuenteGeografica === 'carto') {
+       try {
+         const anteriores = await this.catalogos.entidadesRnpsp();
+         const idAnterior = entidadRnpspId(anteriores, this.adscripcion.entidad);
+         if (idAnterior !== null) {
+           const municipios = await this.catalogos.municipiosRnpsp(idAnterior);
+           if (request !== this.municipioRequest) return;
+           this.fuenteGeografica = 'rnpsp';
+           this.entidades.set(anteriores);
+           this.municipiosAdscripcion.set(municipios);
+           return;
+         }
+       } catch { /* No intercambiar identificadores entre catálogos. */ }
+     }
+     this.catalogError.set('No se pudieron obtener los municipios de adscripción.');
    }
  }
 
