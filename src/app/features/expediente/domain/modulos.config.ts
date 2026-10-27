@@ -1,11 +1,15 @@
 /** Pantallas: Figma formación 321:1578, profesionalización 755:526, estímulos 771:1400,
  * separación 771:2771, salud 765:5893. Las opciones de catálogos no suministradas
  * por la API se capturan como texto libre; nunca se inventan IDs de catálogo. */
-export type ModuloKey = 'formacion-academica' | 'profesionalizacion' | 'estimulos' | 'separacion' | 'salud';
+export type ModuloKey = 'formacion-academica' | 'profesionalizacion' | 'estimulos' | 'separacion' | 'salud' | 'regimen-disciplinario';
 export type FieldType = 'text' | 'number' | 'date' | 'yesno' | 'textarea' | 'email';
+import type { CatalogoEndpoint } from '../../catalogos/domain/models/catalogo.model';
+
 export interface FieldConfig {
   key: string;
   label: string;
+  catalogo?: CatalogoEndpoint;
+  headingBefore?: string;
   type?: FieldType;
   required?: boolean;
   placeholder?: string;
@@ -38,14 +42,14 @@ const f = (key: string, label: string, type: FieldType = 'text', required = fals
 const yes = (key: string, label: string, required = false, extra: Partial<FieldConfig> = {}) => f(key, label, 'yesno', required, extra);
 const date = (key: string, label: string, required = false, extra: Partial<FieldConfig> = {}) => f(key, label, 'date', required, extra);
 const academic: readonly FieldConfig[] = [
-  f('programa','Programa o carrera concluida o registrada','text',true),
   f('nivel','Nivel académico de estudios','text',true),
+  f('programa','Programa o carrera concluida o registrada','text',true),
+  f('estatus','Estatus de estudios','text',true,{catalogo:'estatus-estudio'}),
+  f('institucion','Institución de formación académica','text',true),
   f('pais','País de estudios','text',true),
-  f('modalidad','Modalidad de estudios','text',true),
-  f('estatus','Estatus de estudios','text',true),
+  f('modalidad','Modalidad de estudios','text',true,{catalogo:'modalidad-estudios'}),
   date('inicio','Fecha de inicio de estudios',true),
-  date('termino','Fecha de término de estudios'),
-  f('institucion','Institución de formación académica','text',true)
+  date('termino','Fecha de término de estudios')
 ];
 const promotion = [
   yes('participacion','Ha participado en procesos de promoción',true),
@@ -87,30 +91,68 @@ export const MODULOS: Readonly<Record<ModuloKey, ModuloConfig>> = {
     subtitle:'Registro de la conclusión de la relación administrativa.',
     recommendation:'Valide que la devolución de armamento y placa esté confirmada antes de asentar la fecha final de separación y la restricción de reingreso.',
     groups:[{key:'bajas',label:'Separación del cargo',description:'Fechas de separación, devolución de bienes, armamento y restricciones para el reingreso.',repeatable:true,button:'Agregar separación',columns:['motivo','fechaSeparacion','estatus','armamento'],fields:[
-      f('estatus','Estatus en el Servicio Profesional de Carrera','text',true),
-      date('fechaBaja','Fecha de baja del Registro Nacional',true),
-      yes('pension','Cuenta con pensión por invalidez',true),
+      f('estatus','Estatus en el Servicio Profesional de Carrera','text',true,{headingBefore:'Datos de la separación'}),
+      f('grado','Último grado o jerarquía','text',true),
       date('fechaSeparacion','Fecha de separación del servicio',true),
       f('motivo','Motivo de separación','text',true),
-      f('grado','Último grado o jerarquía','text',true),
-      f('armamento','Estatus de devolución de armamento y equipo','text',true),
+      date('fechaBaja','Fecha de baja del Registro Nacional',true),
+      yes('pension','Cuenta con pensión por invalidez',true),
+      f('armamento','Estatus de devolución de armamento y equipo','text',true,{catalogo:'estatus-devolucion',headingBefore:'Devolución de bienes e identificaciones'}),
       date('fechaArmamento','Fecha de entrega de armamento y equipo'),
       date('fechaPlaca','Fecha de entrega de identificación y placa'),
-      f('tipoRestriccion','Tipo de restricción para el reingreso'),
+      f('tipoRestriccion','Tipo de restricción para el reingreso','text',true,{headingBefore:'Impedimentos y restricciones de reingreso'}),
       yes('restriccion','Restricción para el reingreso del personal')
     ]}]
+  },
+  'regimen-disciplinario': {
+    key: 'regimen-disciplinario', title: 'Régimen disciplinario',
+    subtitle: 'Registro y seguimiento de investigaciones, procesos disciplinarios, sanciones y antecedentes del personal.',
+    recommendation: 'Complete los datos del procedimiento con la información oficial emitida por la autoridad competente.',
+    groups: [
+      { key: 'identificacion', label: 'Identificación y datos generales', description: 'Folio, autoridad responsable y fecha de inicio del proceso.', repeatable:true,button:'Agregar procedimiento', columns:['folio','tipoProcedimiento','autoridad','fechaInicio'],fields: [
+        yes('cuentaProceso','Cuenta con procedimiento disciplinario vigente',true),
+        f('folio','Número o folio de carpeta o proceso de investigación','text',true),
+        f('naturaleza','Naturaleza del procedimiento','text',true,{catalogo:'naturaleza-procedi'}),
+        f('tipoProcedimiento','Tipo de procedimiento disciplinario','text',true),
+        f('autoridad','Autoridad competente','text',true),
+        date('fechaInicio','Fecha de inicio del procedimiento',true),
+        f('falta','Faltas disciplinarias','text',true,{headingBefore:'Tipificación de la falta o delito'}),
+        f('delito','Delito','text')
+      ] },
+      { key: 'medidas', label: 'Medidas preventivas y de protección', description: 'Suspensiones, órdenes de protección y medidas de integridad.', repeatable:true,button:'Agregar medidas', columns:['tipoCautelares','riesgos','institucionales'],fields: [
+        yes('cuentaCautelares','Cuenta con medidas cautelares',true),
+        f('tipoCautelares','Tipo de medidas cautelares','text',true),
+        yes('cuentaProteccion','Cuenta con medidas u órdenes de protección',true),
+        f('tipoProteccion','Tipo de medidas u órdenes de protección','text'),
+        f('riesgos','Riesgos de integridad','text'),
+        f('institucionales','Medidas institucionales adoptadas','text')
+      ] },
+      { key: 'resolucion', label: 'Resolución, estatus y sanciones', description: 'Estatus, fallo final, fechas de conclusión y sanciones.', repeatable:true,button:'Agregar resolución', columns:['estatus','resolucion','fechaConclusion','tipoSancion'],fields: [
+        f('estatus','Estatus del procedimiento disciplinario','text',true),
+        f('estatusPenal','Estatus del procedimiento penal','text'),
+        date('fechaConclusion','Fecha de conclusión del procedimiento',true),
+        date('fechaResolucion','Fecha de resolución de procedimiento penal'),
+        f('resolucion','Resolución del procedimiento disciplinario','text',true),
+        yes('correctivas','Cuenta con medidas correctivas',true),
+        f('tipoCorrectivas','Tipo de medidas correctivas','text',true),
+        yes('sanciones','Cuenta con sanciones',true),
+        f('tipoSancion','Tipo de sanción','text'),
+        f('numeroPrevios','Número de procesos disciplinarios previos','number',false,{min:0,headingBefore:'Antecedentes e historial previo'}),
+        f('faltasPrevias','Tipo de faltas disciplinarias de procesos previos','text')
+      ] }
+    ]
   },
   salud:{
     key:'salud',title:'Salud y bienestar',subtitle:'Datos físicos, incapacidades y perfil psicosocial.',
     recommendation:'Capture los datos clínicos únicamente con información autorizada; los registros son información sensible y deben protegerse.',
     groups:[
-      {key:'fisico',label:'Perfil físico',description:'Métricas corporales y señas particulares.',fields:[f('estatura','Estatura (cm)','number',true,{min:30,max:260}),f('peso','Peso (kg)','number',true,{min:1,max:500}),f('imc','IMC','number',false,{hint:'Calculado automáticamente con estatura y peso.'}),f('sangre','Tipo de sangre','text',true)]},
+      {key:'fisico',label:'Perfil físico',description:'Métricas corporales y señas particulares.',fields:[f('sangre','Tipo de sangre','text',true,{catalogo:'tipo-sangre'}),f('estatura','Estatura (cm)','number',true,{min:30,max:260}),f('peso','Peso (kg)','number',true,{min:1,max:500}),f('imc','IMC','number',false,{hint:'Calculado automáticamente con estatura y peso.'})]},
       {key:'senas',label:'Señas particulares',description:'Cicatrices, tatuajes, lunares y otras señas.',repeatable:true,button:'Agregar seña',columns:['tipo','ubicacion','descripcion','fecha'],fields:[f('tipo','Tipo de seña','text',true),f('ubicacion','Ubicación corporal','text',true),f('descripcion','Descripción','textarea',true),date('fecha','Fecha de registro',true)]},
       {key:'clinico',label:'Historial clínico',description:'Enfermedades, discapacidades, atención y riesgos psicosociales.',fields:[f('enfermedades','Enfermedades crónicas','textarea'),yes('discapacidad','Discapacidad permanente',true),f('tipoDiscapacidad','Tipo de discapacidad','text',true,{dependsOn:{key:'discapacidad',equals:'si'}}),yes('atencion','Recibe atención psicológica o psiquiátrica',true),yes('riesgos','Identificación de riesgos psicosociales',true),f('tipoRiesgos','Tipo de riesgos psicosociales','textarea',true,{dependsOn:{key:'riesgos',equals:'si'}})]},
-      {key:'condicion',label:'Condición laboral',description:'Registro de incapacidades laborales.',fields:[yes('incapacidades','Cuenta con incapacidades registradas',true)],sections:[{title:'Incapacidades',fields:[f('tipo','Tipo de incapacidad','text',true),date('inicio','Fecha de inicio de incapacidad',true),date('fin','Fecha de término de incapacidad',true),f('dias','Días de incapacidad','number',true,{min:1}),f('motivo','Motivo de incapacidad','textarea',true)]}]}
+      {key:'condicion',label:'Condición laboral',description:'Registro de incapacidades laborales.',fields:[yes('incapacidades','Cuenta con incapacidades registradas',true)],sections:[{title:'Incapacidades',fields:[f('tipo','Tipo de incapacidad','text',true),date('inicio','Fecha de inicio de incapacidad',true),date('fin','Fecha de término de incapacidad',true),f('dias','Días de incapacidad','number',true,{min:1}),f('motivo','Motivo de incapacidad','textarea',true,{catalogo:'motivo-incapacidad'})]}]}
     ]
   }
 };
 
-export const MODULO_KEYS: readonly ModuloKey[] = ['formacion-academica','profesionalizacion','estimulos','separacion','salud'];
+export const MODULO_KEYS: readonly ModuloKey[] = ['formacion-academica','profesionalizacion','estimulos','separacion','regimen-disciplinario','salud'];
 export function isModuloKey(key: string): key is ModuloKey { return MODULO_KEYS.some(item => item === key); }

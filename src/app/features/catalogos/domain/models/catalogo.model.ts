@@ -1,3 +1,16 @@
+/** Respuesta de catálogos confirmada mediante el endpoint CatalogosCarto/estados. */
+export interface CatalogoApiResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
+  errors: unknown;
+}
+
+export interface EstadoCartografico {
+  id: number;
+  descripcion: string;
+}
+
 export interface CatalogoOption {
   value: string;
   label: string;

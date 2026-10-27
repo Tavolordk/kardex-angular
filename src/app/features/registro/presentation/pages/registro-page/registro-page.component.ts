@@ -11,6 +11,7 @@ import { SidebarComponent } from '../../../../../shared/layout/sidebar/sidebar.c
 import { SectionHeaderComponent } from '../../../../../shared/ui/section-header/section-header.component';
 import { HelpPanelComponent } from '../../../../../shared/ui/help-panel/help-panel.component';
 import { UtilityDockComponent } from '../../../../../shared/ui/utility-dock/utility-dock.component';
+import { StepNavigationComponent } from '../../../../../shared/ui/step-navigation/step-navigation.component';
 import {
   HelperPanelDockItem,
   HelperPanelKey,
@@ -55,6 +56,7 @@ const DEFAULT_HELPER_VISIBILITY: HelperPanelVisibility = {
     SectionHeaderComponent,
     HelpPanelComponent,
     UtilityDockComponent,
+    StepNavigationComponent,
     IdentificacionFormComponent,
     OrigenResidenciaFormComponent,
     ContactoFormComponent,
@@ -326,7 +328,15 @@ export class RegistroPageComponent implements OnInit {
     return true;
   }
 
-  /** No se ofrecen listas de pasos navegables: solamente Anterior y Continuar. */
+  /** Pestañas previstas en Figma: mantiene los campos de cada paso en el formulario compartido. */
+  selectPersonalStep(step: RegistroStepKey): void {
+    if (this.activeSection() !== 'datos' || this.facade.isSaving()) return;
+    if (!this.steps.some(item => item.key === step)) return;
+    this.navigationError.set('');
+    this.facade.setStep(step);
+  }
+
+  /** Navegación por los botones Anterior y Continuar. */
   previous(): void {
     if (this.activeSection() !== 'datos') return;
     const index = this.activeIndex();

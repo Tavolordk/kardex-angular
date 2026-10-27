@@ -87,8 +87,8 @@ export class IdentificacionFormComponent implements OnInit {
       this.catalogos.pais(),
       this.catalogos.estadoCivil(),
       this.catalogos.tipoVulnerabilidad(),
-      this.catalogos.nacionalidadesRnpsp(),
-      this.catalogos.tiposSangreRnpsp(),
+      this.catalogos.preferirNuevo('nacionalidad', 1),
+      this.catalogos.preferirNuevo('tipo-sangre', 2),
       this.catalogos.factoresSangreRnpsp(),
       this.catalogos.entidadesRnpsp()
     ]);

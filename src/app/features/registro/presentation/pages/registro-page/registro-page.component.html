@@ -60,17 +60,11 @@
                 [class.registration-card--identification]="facade.activeStep() === 'identificacion'"
                 [class.registration-card--contact]="facade.activeStep() === 'contacto'"
                 [class.registration-card--photo]="facade.activeStep() === 'fotografia'">
-                <div class="current-step-indicator" aria-label="Avance en Datos personales">
-                  <div class="current-step-indicator__head">
-                    <span>Datos personales</span>
-                    <strong>Paso {{ activeIndex() + 1 }} de {{ steps.length }}</strong>
-                  </div>
-                  <div class="current-step-indicator__track" role="progressbar"
-                    aria-label="Paso actual de Datos personales" aria-valuemin="0" [attr.aria-valuemax]="steps.length"
-                    [attr.aria-valuenow]="activeIndex() + 1">
-                    <span [style.width.%]="(activeIndex() + 1) / steps.length * 100"></span>
-                  </div>
-                </div>
+                <app-step-navigation
+                  [steps]="steps"
+                  [active]="facade.activeStep()"
+                  [completed]="completed()"
+                  (changed)="selectPersonalStep($event)" />
 
                 <div class="card-content">
                   <header class="form-heading">

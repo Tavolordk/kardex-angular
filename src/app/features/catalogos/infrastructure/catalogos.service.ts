@@ -1,11 +1,12 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { CatalogoEndpoint, CatalogoOption, CatalogoRnpspId } from '../domain/models/catalogo.model';
+import { CatalogoApiResponse, CatalogoEndpoint, CatalogoOption, CatalogoRnpspId, EstadoCartografico } from '../domain/models/catalogo.model';
 
 @Injectable({ providedIn: 'root' })
 export class CatalogosService {
   private readonly baseUrl = '/api/catalogos/Catalogos';
+  private readonly baseCarto = '/api/catalogos/CatalogosCarto';
   private readonly baseRnpsp = '/api/catalogos/CatalogosRnpsp/get-catalogo';
 
   constructor(private readonly http: HttpClient) {}
@@ -13,6 +14,73 @@ export class CatalogosService {
   async obtener(endpoint: CatalogoEndpoint): Promise<CatalogoOption[]> {
     const response = await firstValueFrom(this.http.get<unknown>(`${this.baseUrl}/${endpoint}`));
     return this.normalize(response);
+  }
+
+  /** Catálogos cartográficos del nuevo contrato OpenAPI. No se asumen estructuras de respuesta. */
+  private async carto(path: string, filters: Readonly<Record<string, number>> = {}): Promise<CatalogoOption[]> {
+    let params = new HttpParams();
+    for (const [key, value] of Object.entries(filters)) {
+      if (!Number.isInteger(value) || value < 0) throw new Error(`Parámetro cartográfico inválido: ${key}`);
+      params = params.set(key, String(value));
+    }
+    return this.normalize(await firstValueFrom(this.http.get<unknown>(`${this.baseCarto}/${path}`, { params })));
+  }
+
+  /** Formato verificado contra GET /api/catalogos/CatalogosCarto/estados. */
+  async estadosCarto(): Promise<CatalogoOption[]> {
+    const response = await firstValueFrom(this.http.get<unknown>(`${this.baseCarto}/estados`));
+    const catalogo = this.validarRespuestaEstados(response);
+
+    // Los borradores guardan descripciones. El ID se conserva separado para
+    // consultar municipios mediante idEstado, sin asumir equivalencias con RNPSP.
+    return catalogo.data.map(({ id, descripcion }) => ({
+      id,
+      label: descripcion.trim(),
+      value: descripcion.trim(),
+      raw: { id, descripcion }
+    }));
+  }
+
+  private validarRespuestaEstados(response: unknown): CatalogoApiResponse<EstadoCartografico[]> {
+    if (!response || typeof response !== 'object' || Array.isArray(response)) {
+      throw new Error('Respuesta inválida del catálogo de estados.');
+    }
+    const result = response as Record<string, unknown>;
+    if (result['success'] !== true) {
+      const message = typeof result['message'] === 'string' ? result['message'] : 'Consulta de estados fallida.';
+      throw new Error(message);
+    }
+    if (!Array.isArray(result['data'])) {
+      throw new Error('El catálogo de estados no contiene una lista en data.');
+    }
+    for (const entry of result['data']) {
+      if (!entry || typeof entry !== 'object' || Array.isArray(entry) ||
+          !Number.isInteger(entry.id) || entry.id <= 0 ||
+          typeof entry.descripcion !== 'string' || !entry.descripcion.trim()) {
+        throw new Error('El catálogo de estados contiene un elemento inválido.');
+      }
+    }
+    return result as unknown as CatalogoApiResponse<EstadoCartografico[]>;
+  }
+  codigoPostalCarto(codigoPostal: number): Promise<CatalogoOption[]> { return this.carto('cp', { codigoPostal }); }
+  municipiosCarto(idEstado: number): Promise<CatalogoOption[]> { return this.carto('municipios', { idEstado }); }
+  localidadesCarto(idEstado: number, idMunicipio: number): Promise<CatalogoOption[]> {
+    return this.carto('localidades', { idEstado, idMunicipio });
+  }
+  coloniasCarto(idEstado: number, idMunicipio: number, idLocalidad: number): Promise<CatalogoOption[]> {
+    return this.carto('colonias', { idEstado, idMunicipio, idLocalidad });
+  }
+  callesCarto(idEstado: number, idMunicipio: number, idLocalidad: number, idColonia: number): Promise<CatalogoOption[]> {
+    return this.carto('calles', { idEstado, idMunicipio, idLocalidad, idColonia });
+  }
+  entreCallesCarto(idCalle: number): Promise<CatalogoOption[]> { return this.carto('entre-calles', { idCalle }); }
+  callesLateralesCarto(idCalle: number): Promise<CatalogoOption[]> { return this.carto('calles-laterales', { idCalle }); }
+
+  /** Conserva los catálogos RNPSP cuando un catálogo nuevo no esté disponible. */
+  async preferirNuevo(nuevo: CatalogoEndpoint, respaldo: CatalogoRnpspId): Promise<CatalogoOption[]> {
+    try { const data = await this.obtener(nuevo); if (data.length) return data; }
+    catch { /* El backend anterior continúa vigente como respaldo. */ }
+    return this.obtenerRnpsp(respaldo);
   }
 
   /** idEntidad es requerido únicamente para el catálogo RNPSP 6 (municipios). */
@@ -91,11 +159,11 @@ export class CatalogosService {
       'descripcion', 'descripción', 'desc', 'description', 'nombre', 'name', 'label',
       'denominacion', 'denominación', 'valor', 'value', 'texto', 'detalle',
       'sexo', 'identidadGenero', 'nacionalidad', 'pais', 'estadoCivil', 'tipoVulnerabilidad',
-      'tipoSangre', 'factorSangre', 'entidad', 'municipio', 'tipoArma', 'jerarquia'
+      'tipoSangre', 'factorSangre', 'entidad', 'estado', 'municipio', 'localidad', 'colonia', 'calle', 'tipoArma', 'jerarquia'
     ]) ?? this.firstReadableString(record);
     if (!label) return null;
     const id = this.firstScalar(record, [
-      'idEntidad', 'idMunicipio', 'id', 'idRegistro', 'idElemento', 'idCatalogo',
+      'idEntidad', 'idEstado', 'idMunicipio', 'idLocalidad', 'idColonia', 'idCalle', 'id', 'idRegistro', 'idElemento', 'idCatalogo',
       'clave', 'cveEntidad', 'claveEntidad', 'codigo', 'code', 'key',
       'idSexo', 'idIdentidadGenero', 'idNacionalidad', 'idPais', 'idEstadoCivil',
       'idTipoVulnerabilidad', 'fk', 'pk'

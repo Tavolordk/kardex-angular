@@ -68,7 +68,7 @@ export class MenuPageComponent implements OnInit {
     { title: 'Profesionalización', description: 'Formación inicial, continua y sus comprobantes.', section: 'profesionalizacion', action: 'Actualizar', newModule: true },
     { title: 'Estímulos/reconocimientos', description: 'Registro de bonificaciones, distinciones otorgadas.', section: 'estimulos', action: 'Actualizar', newModule: true },
     { title: 'Separación del cargo', description: 'Registro de la conclusión de la relación administrativa.', section: 'separacion', action: 'Actualizar', newModule: true },
-    { title: 'Régimen disciplinario', description: 'Medidas preventivas, resoluciones y sanciones del personal.', action: 'Actualizar' },
+    { title: 'Régimen disciplinario', description: 'Medidas preventivas, resoluciones y sanciones del personal.', section: 'regimen-disciplinario', action: 'Actualizar', newModule: true },
     { title: 'Salud y bienestar', description: 'Datos físicos, incapacidades y perfil psicosocial.', section: 'salud', action: 'Actualizar', newModule: true }
   ];
 
@@ -160,6 +160,7 @@ export class MenuPageComponent implements OnInit {
       profesionalizacion: moduleProgress('profesionalizacion'),
       estimulos: moduleProgress('estimulos'),
       separacion: moduleProgress('separacion'),
+      'regimen-disciplinario': moduleProgress('regimen-disciplinario'),
       salud: moduleProgress('salud')
     });
   }

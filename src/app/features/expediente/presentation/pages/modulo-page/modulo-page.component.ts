@@ -9,6 +9,8 @@ import { KardexFlowService } from '../../../../../core/navigation/kardex-flow.se
 import { InstitutionalHeaderComponent } from '../../../../../shared/layout/institutional-header/institutional-header.component';
 import { SidebarComponent } from '../../../../../shared/layout/sidebar/sidebar.component';
 import { SectionHeaderComponent } from '../../../../../shared/ui/section-header/section-header.component';
+import { CatalogosService } from '../../../../catalogos/infrastructure/catalogos.service';
+import { CatalogoOption, CatalogoEndpoint } from '../../../../catalogos/domain/models/catalogo.model';
 import { FieldConfig, GroupConfig, isModuloKey, MODULOS, ModuloConfig, ModuloKey } from '../../../domain/modulos.config';
 
 interface RecordEntry { id: string; values: Record<string, string>; documentNames?: string[]; }
@@ -34,6 +36,7 @@ const MIN_YEAR = '1900-01-01';
 export class ModuloPageComponent implements OnDestroy {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly catalogos = inject(CatalogosService);
   private readonly signOutUseCase = inject(SignOutUseCase);
   private readonly flow = inject(KardexFlowService);
   private readonly sessionUseCase = inject(GetCurrentSessionUseCase);
@@ -55,6 +58,23 @@ export class ModuloPageComponent implements OnDestroy {
   readonly invalidFields = signal<string[]>([]);
   readonly showHelp = signal(true);
   readonly recentSave = signal(false);
+  readonly catalogOptions = signal<Partial<Record<CatalogoEndpoint, CatalogoOption[]>>>({});
+  readonly catalogLoading = signal<CatalogoEndpoint[]>([]);
+  catalogValues(field: FieldConfig): CatalogoOption[] { return field.catalogo ? this.catalogOptions()[field.catalogo] ?? [] : []; }
+  catalogContains(field: FieldConfig, value: string): boolean {
+    return this.catalogValues(field).some(option => option.value === value);
+  }
+  private async loadCatalogs(key: ModuloKey): Promise<void> {
+    const fields = MODULOS[key].groups.flatMap(group => [...group.fields,...(group.sections?.flatMap(section => [...section.fields]) ?? [])]);
+    const endpoints = [...new Set(fields.map(field => field.catalogo).filter((endpoint): endpoint is CatalogoEndpoint => !!endpoint))];
+    this.catalogLoading.set(endpoints);
+    const results = await Promise.allSettled(endpoints.map(endpoint => this.catalogos.obtener(endpoint)));
+    if (this.modulo().key !== key) return;
+    const options: Partial<Record<CatalogoEndpoint, CatalogoOption[]>> = {};
+    endpoints.forEach((endpoint, i) => { const result = results[i]; if(result.status === 'fulfilled' && result.value.length) options[endpoint] = result.value; });
+    this.catalogOptions.set(options);
+    this.catalogLoading.set([]);
+  }
   readonly visibleGroups = computed(() => {
     const key = this.modulo().key;
     const groups = this.modulo().groups;
@@ -71,7 +91,7 @@ export class ModuloPageComponent implements OnDestroy {
     return groups.length ? Math.round(groups.reduce((total, group) => total + this.groupProgress(group), 0) / groups.length) : 0;
   });
   readonly storedInSession = computed(() => this.modulo().key === 'salud');
-  readonly hasTabs = computed(() => this.modulo().key === 'profesionalizacion' || this.modulo().key === 'salud');
+  readonly hasTabs = computed(() => this.modulo().key === 'profesionalizacion' || this.modulo().key === 'salud' || this.modulo().key === 'regimen-disciplinario');
   readonly documentBuckets = ['documentos-inicial', 'documentos-continua'];
 
   constructor() {
@@ -95,6 +115,8 @@ export class ModuloPageComponent implements OnDestroy {
     this.fileSelections.set({});
     this.volatileFiles.clear();
     this.state.set(this.restore(key));
+    this.catalogOptions.set({});
+    void this.loadCatalogs(key);
   }
 
   private moduleStorageKey(key: ModuloKey): string {
@@ -161,7 +183,7 @@ export class ModuloPageComponent implements OnDestroy {
   }
 
   private validationErrors(group: GroupConfig, values: Record<string, string>): string[] {
-    const allFields = [...group.fields, ...(group.key === 'condicion' && values['incapacidades'] === 'si' ? (group.sections?.flatMap(section => section.fields) || []) : [])];
+    const allFields = [...group.fields, ...((group.key !== 'condicion' || values['incapacidades'] === 'si') ? (group.sections?.flatMap(section => section.fields) || []) : [])];
     const errors = this.requiredFields(allFields, values).filter(field => !this.hasValue(values[field.key])).map(field => group.key + '.' + field.key);
     for (const field of allFields) {
       if (!this.fieldVisible(field, values) || !this.hasValue(values[field.key])) continue;
@@ -237,7 +259,7 @@ export class ModuloPageComponent implements OnDestroy {
   }
   nameFor(group: GroupConfig,key: string): string { return group.fields.find(field => field.key === key)?.label || key; }
   showInitialInline(group: GroupConfig): boolean {
-    return group.repeatable === true && this.entries(group).length === 0 && ((this.modulo().key === 'formacion-academica' && group.key !== 'idiomas') || this.modulo().key === 'estimulos' || this.modulo().key === 'separacion');
+    return group.repeatable === true && this.entries(group).length === 0 && ((this.modulo().key === 'formacion-academica' && group.key !== 'idiomas') || this.modulo().key === 'estimulos' || this.modulo().key === 'separacion' || this.modulo().key === 'regimen-disciplinario');
   }
   onEscape(): void { if (this.modalGroup()) this.closeModal(); }
   toggleSidebar(): void { this.sidebarOpen.update(v => !v); }
